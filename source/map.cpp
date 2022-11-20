@@ -1,10 +1,14 @@
 #include <iostream>
 #include "..\headers\map.h"
 #include "..\headers\consInteraction.h"
+#include "windows.h"
 
 void Map::changeColor(int row_coord, int col_coord) const{
-    if(grid[row_coord][col_coord] == plr.getToken()){
-        setTextColor(9);
+    if(grid[row_coord][col_coord] == plr.getToken() && phase == 0){
+        setTextColor(1);
+    }
+    else if(grid[row_coord][col_coord] == plr.getToken() && phase == 1){
+        setTextColor(14);
     }
     else if (grid[row_coord][col_coord] != bkgrnd){
         setTextColor(4);
@@ -18,11 +22,14 @@ void Map::changeColor(int row_coord, int col_coord) const{
 }
 
 bool Map::checkOverlap(int i) {
+    if(mnstr[i].isDead()) {
+        return false;
+    }
     if(mnstr[i].getCol() == plr.getCol() && mnstr[i].getRow() == plr.getRow()) {
         return true;
     }
     for(int j = 0; j < mnstr.size(); j++) {
-        if((mnstr[i].getCol() == mnstr[j].getCol() && mnstr[i].getRow() == mnstr[j].getRow()) && (j != i)) {
+        if((mnstr[i].getCol() == mnstr[j].getCol() && mnstr[i].getRow() == mnstr[j].getRow()) && (j != i) && !mnstr[j].isDead()) {
             return true;
         }
     }
@@ -35,26 +42,26 @@ void Map::handleOverlap(Monster & mnstr){
     while(flag) { //this loop will run AT MOST twice. If we are against 1 col wall, we are not against the other, and same with row walls
         flag = false;
         if(dir == 0 && mnstr.getCol() - 1 >= 0){
-            mnstr.setCoords(mnstr.getCol() - 1, mnstr.getRow());
+            mnstr.setCoords(mnstr.getRow(), mnstr.getCol() - 1);
             return;
         } else if(dir == 0) {
             dir++;
         }
         if(dir == 1 && mnstr.getCol() + 1 < grid[0].size()){
-            mnstr.setCoords(mnstr.getCol() + 1, mnstr.getRow());
+            mnstr.setCoords(mnstr.getRow(), mnstr.getCol() + 1);
             return;
         } else if(dir == 1){
             dir--; //go back through the loop to hit the prior statement
             flag = true;
         }
         if(dir == 2 && mnstr.getRow() - 1 >= 0){
-            mnstr.setCoords(mnstr.getCol(), mnstr.getRow() - 1);
+            mnstr.setCoords(mnstr.getRow() - 1, mnstr.getCol());
             return;
         } else if(dir == 2){
             dir++;
         }
         if(dir == 3 && mnstr.getRow() + 1 < grid.size()){
-            mnstr.setCoords(mnstr.getCol(), mnstr.getRow() + 1);
+            mnstr.setCoords(mnstr.getRow() + 1, mnstr.getCol());
             return;
         } else if(dir == 3){
             dir--;
@@ -63,13 +70,23 @@ void Map::handleOverlap(Monster & mnstr){
     }
 }
 
+int Map::findMonster(int row_coord, int col_coord) const {
+    for(int i = 0; i < mnstr.size(); i++) {
+        if(row_coord == mnstr[i].getRow() && col_coord == mnstr[i].getCol()) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 Map::Map() : Map(12, 12, '+', 7) {}
 
 Map::Map(int rows, int cols, char back, int num_monst){
     plr = Player(rand() % rows, rand() % cols);
+    phase = 0;
 
     for(int i = 0; i < num_monst; i++) {
-        mnstr.push_back(Monster(rand() % rows, rand() % cols, '0', 1, 1, 1));
+        mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 1, 1, 1));
     }
     
     bkgrnd = back;
@@ -119,11 +136,34 @@ void Map::moveCursor(char dir){
     }
 }
 
+void Map::phaseAct(bool skip){
+    if(skip){
+        if(phase == 0){
+            phase++;
+        }
+        else if(phase == 1){
+            handleMonsters();
+            phase = 0;
+        }
+    }
+    else if(phase == 0){
+        if(movePlayer()){
+            phase++;
+        }
+    }
+    else if (phase == 1){
+        if(playerAttack()){
+            handleMonsters();
+            phase = 0;
+        }
+    }
+}
+
 bool Map::movePlayer() {
     bool hasMoved = false;
     for(int i = 0; i < mnstr.size(); i++) {
         //check if we are moving on top of a monster
-        if(crsr.getCol() == mnstr[i].getCol() && crsr.getRow() == mnstr[i].getRow()) {
+        if(crsr.getCol() == mnstr[i].getCol() && crsr.getRow() == mnstr[i].getRow() && !mnstr[i].isDead()) {
             return false;
         }
     }
@@ -137,26 +177,47 @@ bool Map::movePlayer() {
     return hasMoved;
 }
 
-void Map::moveMonsters() {
-    for(int i = 0; i < mnstr.size(); i++) {
-        mnstr[i].setDest(plr, grid[i].size(), grid.size());
-
-        grid[mnstr[i].getRow()][mnstr[i].getCol()] = bkgrnd;
-        mnstr[i].updateCoords();
+bool Map::playerAttack(){
+    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
+    if(plr.canAttack(crsr.getRow(), crsr.getCol()) && mnstr_index >= 0){
+        mnstr[mnstr_index].receiveAttack(plr.rollAttack(crsr.getRow(), crsr.getCol()));
+        if(mnstr[mnstr_index].isDead()){
+            grid[mnstr[mnstr_index].getRow()][mnstr[mnstr_index].getCol()] = bkgrnd;
+            mnstr.erase(mnstr.begin() + mnstr_index);
+        }
+        return true;
     }
+    else{
+        return false;
+    }
+}
+
+void Map::handleMonsters(){
+    for(int i = 0; i < mnstr.size(); i++){
+        if(!mnstr[i].isDead()) {
+            moveMonster(i);
+            printGrid();
+            Sleep(150);
+        }
+    }
+}
+
+void Map::moveMonster(int index) {
+    mnstr[index].setDest(plr, grid[0].size(), grid.size());
+
+    grid[mnstr[index].getRow()][mnstr[index].getCol()] = bkgrnd;
+    mnstr[index].updateCoords();
     bool overlap = true;
     while(overlap) {
         overlap = false;
         for(int i = 0; i < mnstr.size(); i++) {
             if(checkOverlap(i)) {
                 overlap = true;
-                handleOverlap(mnstr[i]);
+                handleOverlap(mnstr[index]);
             }
         }
     }
-    for(int i = 0; i < mnstr.size(); i++) {
-        grid[mnstr[i].getRow()][mnstr[i].getCol()] = mnstr[i].getToken();
-    }
+    grid[mnstr[index].getRow()][mnstr[index].getCol()] = mnstr[index].getToken();
 }
 
 int Map::getNumRows() const {

@@ -2,35 +2,25 @@
 
 Monster::Monster() : Monster(0,0,'0',2,1,0) {}
 
-Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB) {
-    col = col_coord;
-    row = row_coord;
-    token = symbol;
-    //set sight/move
+Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB) : Character(symbol, row_coord, col_coord, 3, 1, 1, 3, 1, .75, 0.0) {
+    // col = col_coord;
+    // row = row_coord;
+    // token = symbol;
+    // //set sight/move
+    // move = 3;
     sight = 5;
-    move = 3;
     behave[0] = behaveP;
     behave[1] = behaveD;
     behave[2] = behaveB;
     provoked = false;
+    spotted = false;
+    dead = false;
     b_index = 2;
-}
-
-void Monster::setCoords(int col_coord, int row_coord) {
-    col = col_coord;
-    row = row_coord;
 }
 
 void Monster::updateCoords() {
     col = dest[0];
     row = dest[1];
-}
-
-bool Monster::canMove(int col_coord, int row_coord) const {
-    if(getDistS(col_coord, row_coord) <= move*move) {
-        return true;
-    }
-    return false;
 }
 
 bool Monster::canApproach(Player plr) const {
@@ -41,22 +31,31 @@ bool Monster::canApproach(Player plr) const {
 }
 
 bool Monster::canSee(Player plr) {
+    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight && !spotted) {
+        spotted = true;
+    }
+
+    return spotted;
+}
+
+bool Monster::isProvoked() {
+    if(cur_hp < max_hp) {
+        provoked = true;
+    }
+
+    return provoked;
+}
+
+int Monster::checkBehavior() {
     if(provoked) {
         b_index = 0;
-    }
-
-    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight) {
-        if(!provoked) {
-            b_index = 1;
-        }
-        return true;
-    }
-
-    if(!provoked) {
+    } else if(spotted) {
+        b_index = 1;
+    } else {
         b_index = 2;
     }
-
-    return false;
+    
+    return b_index;
 }
 
 void Monster::setDest(Player plr, int max_cols, int max_rows) {
@@ -234,12 +233,4 @@ int Monster::getDistS(int col_coord, int row_coord) const {
 
 char Monster::getToken() const {
     return token;
-}
-
-int Monster::getCol() const {
-    return col;
-}
-
-int Monster::getRow() const {
-    return row;
 }

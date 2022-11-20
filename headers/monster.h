@@ -2,33 +2,24 @@
 #define MONSTER_H
 
 #include ".\player.h"
+#include ".\character.h"
 #include <cmath>
 #include <string>
 using std::string;
 using std::sqrt;
 
-class Monster{
+class Monster : public Character{
 private:
     string name;
-    int max_hp;
-    int cur_hp;
     string desc;
 
-    int atk_range;
-    int atk;
-    int atk_var;
+    char dead_token;
 
-    float acc;
-    float acc_rate;
-
-    char token;
-    int col;
-    int row;
-    int move;
     int sight; //"sight" range
+    bool spotted; //whether or not the monster has seen the player
     bool provoked;
     int behave[3]; //element meanings: 0 == random, 1 == approach player, 2 == flee player
-    int b_index; //index meanings: 0 == provoked, 1 == default, 2 == cannot see player
+    int b_index; //index meanings: 0 == provoked, 1 == spotted, 2 == default
 
     int dest[2]; //col, row
 
@@ -38,14 +29,12 @@ public:
     Monster();
     Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB);
 
-    void setCoords(int col_coord, int row_coord); //puts monster at [col_coord, row_coord] !!ONLY CALL AFTER checkOverlap IN MAP!!
     void updateCoords(); //moves monster to dest
-    bool canMove(int col_coord, int row_coord) const;
     bool canApproach(Player plr) const;
     bool canSee(Player plr);
+    bool isProvoked();
 
-    bool canAttack(int target_row, int target_col) const;
-    int rollAttack(int target_row, int target_col) const;
+    int checkBehavior();
 
     void setDest(Player plr, int max_cols, int max_rows);
 
@@ -54,8 +43,6 @@ public:
     void fleeMove(Player plr, int max_cols, int max_rows); //move away from the player
     void randMove(Player plr, int max_cols, int max_rows); //move within range, not onto the player
 
-    int getCol() const;
-    int getRow() const;
     char getToken() const;
 };
 

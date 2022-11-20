@@ -21,12 +21,17 @@ void detectInput(Map& map, bool & received_input_last_check){
     }
     if(GetAsyncKeyState(' ') & 0x8000){
         if(!received_input_last_check){
-            if(map.movePlayer()){
-                map.moveMonsters();
-            }
+            map.phaseAct();
         }
         input = true;
     }
+    if(GetAsyncKeyState('E') & 0x8000){
+        if(!received_input_last_check){
+            map.phaseAct(true);
+        }
+        input = true;
+    }
+    
     if(input){
         if(!received_input_last_check){
             map.printGrid();

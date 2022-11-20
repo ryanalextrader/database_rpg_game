@@ -1,8 +1,11 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
 
+#include <cmath>
+using std::sqrt;
+
 class Character {
-private:
+protected:
     char token;
     int row;
     int col;
@@ -16,12 +19,14 @@ private:
     float acc; //1.0 -> always hits, 0.9 -> 90% chance to hit...
     float acc_rate; //how much the accuracy decreases every unit of distance
 
+    bool dead; //whether or not the character has died
+
 public:
     Character();
     Character(char symbol, int row_coord, int col_coord, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
 
     void setCoords(int row_coord, int col_coord);
-    bool canMove(int row_coord, int col_coord);
+    bool canMove(int row_coord, int col_coord) const;
 
     bool canAttack(int target_row, int target_col) const;
     int rollAttack(int target_row, int target_col) const; //returns -1 if the attack misses
@@ -29,7 +34,8 @@ public:
 
     int getRow() const;
     int getCol() const;
-    char getToken() const;
+    virtual char getToken() const;
+    bool isDead() const;
 };
 
 #endif
