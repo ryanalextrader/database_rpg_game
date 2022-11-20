@@ -193,7 +193,32 @@ void Monster::fleeMove(Player plr, int max_cols, int max_rows) {
 }
 
 void Monster::randMove(Player plr, int max_cols, int max_rows) {
-    
+    int dir;
+    int cur_col;
+    int cur_row;
+    dest[0] = col;
+    dest[1] = row;
+    for(int i = 0; i < move; i++) {
+        dir = rand() % 4;
+        cur_col = dest[0];
+        cur_row = dest[1];
+        if(cur_col - 1 >= 0 && dir == 0) {
+            dest[0] = cur_col - 1;
+            dest[1] = cur_row;
+        }
+        if(cur_row - 1 >= 0 && dir == 1) {
+            dest[0] = cur_col;
+            dest[1] = cur_row - 1;
+        }
+        if(cur_col + 1 < max_cols && dir == 2) {
+            dest[0] = cur_col + 1;
+            dest[1] = cur_row;
+        }
+        if(cur_row + 1 < max_rows && dir == 3) {
+            dest[0] = cur_col;
+            dest[1] = cur_row + 1;
+        }
+    }
 }
 
 int Monster::distanceS(int col_a, int row_a, int col_b, int row_b) const {

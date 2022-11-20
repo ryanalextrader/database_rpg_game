@@ -20,9 +20,10 @@ class Map{
         Cursor crsr;
         void changeColor(int row_cord, int col_cord) const;
         bool checkOverlap(int i); //returns true if the monster overlaps with a) any prior monster or b) the player
+        void handleOverlap(Monster& mnstr);
     public:
         Map();
-        Map(int rows, int cols, char back);
+        Map(int rows, int cols, char back, int num_monst);
         
         void setNumRowsCols(int row, int col);
         void moveCursor(char dir);
