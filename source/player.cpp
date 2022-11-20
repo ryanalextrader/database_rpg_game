@@ -2,26 +2,27 @@
 
 Player::Player() : Player(0,0) {}
 
-Player::Player(int x_coord, int y_coord) {
-    x = x_coord;
-    y = y_coord;
+Player::Player(int row_coord, int col_coord) {
+    row = row_coord;
+    col = col_coord;
     move = 4;
     token = '@';
 }
 
-void Player::updateCoords(int x_coord, int y_coord) {
-    if(!canMove(x_coord, y_coord)) {
-        return;
+bool Player::updateCoords(int row_coord, int col_coord) {
+    if(!canMove(row_coord, col_coord)) {
+        return false;
     }
-    x = x_coord;
-    y = y_coord;
+    row = row_coord;
+    col = col_coord;
+    return true;
 }
 
-bool Player::canMove(int x_coord, int y_coord) const {
-    int dx = x_coord - x;
-    int dy = y_coord - y;
+bool Player::canMove(int row_coord, int col_coord) const {
+    int drow = row_coord - row;
+    int dcol = col_coord - col;
 
-    if((dx*dx + dy* dy) <= move*move) {
+    if((drow*drow + dcol* dcol) <= move*move) {
         return true;
     }
     return false;
@@ -31,10 +32,10 @@ char Player::getToken() const {
     return token;
 }
 
-int Player::getX() const {
-    return x;
+int Player::getRow() const {
+    return row;
 }
 
-int Player::getY() const {
-    return y;
+int Player::getCol() const {
+    return col;
 }

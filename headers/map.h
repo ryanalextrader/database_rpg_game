@@ -26,7 +26,8 @@ class Map{
         
         void setNumRowsCols(int row, int col);
         void moveCursor(char dir);
-        void movePlayer();
+        bool movePlayer();
+        void moveMonsters();
 
         int getNumRows() const;
         int getNumCols() const;

@@ -2,14 +2,14 @@
 #include "..\headers\map.h"
 #include "..\headers\consInteraction.h"
 
-void Map::changeColor(int row_cord, int col_cord) const{
-    if(grid[row_cord][col_cord] == plr.getToken()){
+void Map::changeColor(int row_coord, int col_coord) const{
+    if(grid[row_coord][col_coord] == plr.getToken()){
         setTextColor(9);
     }
-    else if (grid[row_cord][col_cord] != bkgrnd){
+    else if (grid[row_coord][col_coord] != bkgrnd){
         setTextColor(4);
     }
-    else if(plr.canMove(col_cord, row_cord)){
+    else if(plr.canMove(row_coord, col_coord)){
         setTextColor(10);
     }
     else{
@@ -18,11 +18,11 @@ void Map::changeColor(int row_cord, int col_cord) const{
 }
 
 bool Map::checkOverlap(int i) {
-    if(mnstr[i].getX() == plr.getX() && mnstr[i].getY() == plr.getY()) {
+    if(mnstr[i].getCol() == plr.getCol() && mnstr[i].getRow() == plr.getRow()) {
         return true;
     }
     for(int j = 0; j < mnstr.size(); j++) {
-        if((mnstr[i].getX() == mnstr[j].getX() && mnstr[i].getY() == mnstr[j].getY()) && (j != i)) {
+        if((mnstr[i].getCol() == mnstr[j].getCol() && mnstr[i].getRow() == mnstr[j].getRow()) && (j != i)) {
             return true;
         }
     }
@@ -41,7 +41,7 @@ Map::Map(int rows, int cols, char back){
     for(int i = 0; i < rows; i++){
         grid[i].assign(cols, back);
     }
-    grid[plr.getY()][plr.getX()] = plr.getToken();
+    grid[plr.getRow()][plr.getCol()] = plr.getToken();
 
     //make sure no monsters overlap with any other monsters or the player
     bool overlap = true;
@@ -57,7 +57,7 @@ Map::Map(int rows, int cols, char back){
 
     //add monsters to grid
     for(int i = 0; i < mnstr.size(); i++) {
-        grid[mnstr[i].getY()][mnstr[i].getY()] = mnstr[i].getToken();
+        grid[mnstr[i].getRow()][mnstr[i].getCol()] = mnstr[i].getToken();
     }
 }
 
@@ -83,10 +83,43 @@ void Map::moveCursor(char dir){
     }
 }
 
-void Map::movePlayer() {
-    grid[plr.getY()][plr.getX()] = bkgrnd;
-    plr.updateCoords(crsr.getCol(), crsr.getRow());
-    grid[plr.getY()][plr.getX()] = plr.getToken();
+bool Map::movePlayer() {
+    bool hasMoved = false;
+    for(int i = 0; i < mnstr.size(); i++) {
+        //check if we are moving on top of a monster
+        if(crsr.getCol() == mnstr[i].getCol() && crsr.getRow() == mnstr[i].getRow()) {
+            return false;
+        }
+    }
+
+    grid[plr.getRow()][plr.getCol()] = bkgrnd;
+    if(plr.updateCoords(crsr.getRow(), crsr.getCol())) {
+        hasMoved = true;
+    }
+    grid[plr.getRow()][plr.getCol()] = plr.getToken();
+
+    return hasMoved;
+}
+
+void Map::moveMonsters() {
+    for(int i = 0; i < mnstr.size(); i++) {
+        mnstr[i].setDest(plr, grid[i].size(), grid.size());
+
+        grid[mnstr[i].getRow()][mnstr[i].getCol()] = bkgrnd;
+        mnstr[i].updateCoords();
+        grid[mnstr[i].getRow()][mnstr[i].getCol()] = mnstr[i].getToken();
+    }
+    
+    // bool overlap = true;
+    // while(overlap) {
+    //     overlap = false;
+    //     for(int i = 0; i < mnstr.size(); i++) {
+    //         if(checkOverlap(i)) {
+    //             overlap = true;
+                
+    //         }
+    //     }
+    // }
 }
 
 int Map::getNumRows() const {

@@ -21,7 +21,9 @@ void detectInput(Map& map, bool & received_input_last_check){
     }
     if(GetAsyncKeyState(' ') & 0x8000){
         if(!received_input_last_check){
-            map.movePlayer();
+            if(map.movePlayer()){
+                map.moveMonsters();
+            }
         }
         input = true;
     }
@@ -52,4 +54,9 @@ int main(){
     clearScreen();
     game.printGrid();
     gameLoop(game);
+    // int rise = -4;
+    // int run = -3;
+    // int move = 3;
+    // int num = sqrt((move*move) * (1 + ((run*run) / (rise*rise))));
+    // cout << num << endl;
 }

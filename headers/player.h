@@ -4,19 +4,19 @@
 class Player{
 private:
     char token;
-    int x;
-    int y;
+    int row;
+    int col;
     int move;
 
 public:
     Player();
-    Player(int x_coord, int y_coord);
+    Player(int row_coord, int col_coord);
 
-    void updateCoords(int x_coord, int y_coord);
-    bool canMove(int x_coord, int y_coord) const;
+    bool updateCoords(int row_coord, int col_coord);
+    bool canMove(int row_coord, int col_coord) const;
 
-    int getX() const;
-    int getY() const;
+    int getRow() const;
+    int getCol() const;
     char getToken() const;
 };
 

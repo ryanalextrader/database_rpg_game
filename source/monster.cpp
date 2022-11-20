@@ -2,9 +2,9 @@
 
 Monster::Monster() : Monster(0,0,'0',2,1,0) {}
 
-Monster::Monster(int x_coord, int y_coord, char symbol, int behaveP, int behaveD, int behaveB) {
-    x = x_coord;
-    y = y_coord;
+Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB) {
+    col = col_coord;
+    row = row_coord;
     token = symbol;
     //set sight/move
     sight = 5;
@@ -16,87 +16,205 @@ Monster::Monster(int x_coord, int y_coord, char symbol, int behaveP, int behaveD
     b_index = 2;
 }
 
-void Monster::updateCoords() {
-    x = dest[0];
-    y = dest[1];
+void Monster::setCoords(int col_coord, int row_coord) {
+    col = col_coord;
+    row = row_coord;
 }
 
-bool Monster::canMove(int x_coord, int y_coord) const {
-    if(getDist(x_coord, y_coord) <= move*move) {
+void Monster::updateCoords() {
+    col = dest[0];
+    row = dest[1];
+}
+
+bool Monster::canMove(int col_coord, int row_coord) const {
+    if(getDistS(col_coord, row_coord) <= move*move) {
         return true;
     }
     return false;
 }
 
 bool Monster::canApproach(Player plr) const {
-    if(getDist(plr.getX(), plr.getY()) <= (move+1)*(move+1)) {
+    if(getDistS(plr.getCol(), plr.getRow()) <= (move+1)*(move+1)) {
         return true;
     }
     return false;
 }
 
 bool Monster::canSee(Player plr) {
-    if(getDist(plr.getX(), plr.getY()) <= sight*sight) {
+    if(provoked) {
+        b_index = 0;
+    }
+
+    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight) {
         if(!provoked) {
             b_index = 1;
         }
         return true;
     }
+
     if(!provoked) {
         b_index = 2;
     }
+
     return false;
 }
 
-void Monster::setDest(Player plr) {
+void Monster::setDest(Player plr, int max_cols, int max_rows) {
+    //random
+    if(behave[b_index] == 0) {
+        randMove(plr, max_cols, max_rows);
+    }
     //approach
     if(behave[b_index] == 1) {
-        //can move to player
+        //can move to player:
         if(canApproach(plr)) {
-            dest[0] = plr.getX() - 1;
-            dest[1] = plr.getY();
-            if(getDist(dest[0], dest[1]) > getDist(plr.getX(), plr.getY() - 1)) {
-                dest[0] = plr.getX();
-                dest[1] = plr.getY() - 1;
-            }
-            if(getDist(dest[0], dest[1]) > getDist(plr.getX() + 1, plr.getY())) {
-                dest[0] = plr.getX() + 1;
-                dest[1] = plr.getY();
-            }
-            if(getDist(dest[0], dest[1]) > getDist(plr.getX(), plr.getY() + 1)) {
-                dest[0] = plr.getX();
-                dest[1] = plr.getY() + 1;
-            }
-            return;
+            adjMove(plr, max_cols, max_rows);
         }
-        //cannot move directly to player
-        //get slope between monster and player
-        int rise = plr.getY() - y;
-        int run = plr.getX() - x;
-        //calculate distance to move in x direction: x^2 + (x * dy / dx)^2 = move^2 -> x^2 * (1 + dy^2 / dx^2) = m^2
-        int dx = sqrt(move*move * (1 + (run / rise)));
-        dest[0] = x + dx;
-        dest[1] = y + dx * (rise / run);
-        return;
+        //cannot move directly to player:
+        else {
+            chaseMove(plr, max_cols, max_rows);
+        }
     }
+    //flee
+    if(behave[b_index] == 2) {
+        fleeMove(plr, max_cols, max_rows);
+    }
+}
+
+void Monster::adjMove(Player plr, int max_cols, int max_rows) {
+    dest[0] = plr.getCol();
+    dest[1] = plr.getRow();
+    if(getDistS(dest[0], dest[1]) > getDistS(plr.getCol() - 1, plr.getRow()) && plr.getCol() - 1 >= 0) {
+        dest[0] = plr.getCol() - 1;
+        dest[1] = plr.getRow();
+    }
+    if(getDistS(dest[0], dest[1]) > getDistS(plr.getCol(), plr.getRow() - 1) && plr.getRow() - 1 >= 0) {
+        dest[0] = plr.getCol();
+        dest[1] = plr.getRow() - 1;
+    }
+    if(getDistS(dest[0], dest[1]) > getDistS(plr.getCol() + 1, plr.getRow()) && plr.getCol() + 1 < max_cols) {
+        dest[0] = plr.getCol() + 1;
+        dest[1] = plr.getRow();
+    }
+    if(getDistS(dest[0], dest[1]) > getDistS(plr.getCol(), plr.getRow() + 1) && plr.getRow() + 1 < max_rows) {
+        dest[0] = plr.getCol();
+        dest[1] = plr.getRow() + 1;
+    }
+}
+
+void Monster::chaseMove(Player plr, int max_cols, int max_rows) {
+    int min_dist_s;
+    int new_dist_s;
+    int cur_col;
+    int cur_row;
+    dest[0] = col;
+    dest[1] = row;
+    for(int i = 0; i < move; i++) {
+        cur_col = dest[0];
+        cur_row = dest[1];
+        min_dist_s = distanceS(cur_col, cur_row, plr.getCol(), plr.getRow());
+        if(cur_col - 1 >= 0) {
+            new_dist_s = distanceS(cur_col - 1, cur_row, plr.getCol(), plr.getRow());
+            if(min_dist_s > new_dist_s) {
+                min_dist_s = new_dist_s;
+                dest[0] = cur_col - 1;
+                dest[1] = cur_row;
+            }
+        }
+        if(cur_row - 1 >= 0) {
+            new_dist_s = distanceS(cur_col, cur_row - 1, plr.getCol(), plr.getRow());
+            if(min_dist_s > new_dist_s){
+                min_dist_s = new_dist_s;
+                dest[0] = cur_col;
+                dest[1] = cur_row - 1;
+            }
+        }
+        if(cur_col + 1 < max_cols) {
+            new_dist_s = distanceS(cur_col + 1, cur_row, plr.getCol(), plr.getRow());
+            if(min_dist_s > new_dist_s) {
+                min_dist_s = new_dist_s;
+                dest[0] = cur_col + 1;
+                dest[1] = cur_row;
+            }
+        }
+        if(cur_row + 1 < max_rows) {
+            new_dist_s = distanceS(cur_col, cur_row + 1, plr.getCol(), plr.getRow());
+            if(min_dist_s > new_dist_s) {
+                dest[0] = cur_col;
+                dest[1] = cur_row + 1;
+            }
+        }
+    }
+}
+
+void Monster::fleeMove(Player plr, int max_cols, int max_rows) {
+    int max_dist_s;
+    int new_dist_s;
+    int cur_col;
+    int cur_row;
+    dest[0] = col;
+    dest[1] = row;
+    for(int i = 0; i < move; i++) {
+        cur_col = dest[0];
+        cur_row = dest[1];
+        max_dist_s = distanceS(cur_col, cur_row, plr.getCol(), plr.getRow());
+        if(cur_col - 1 >= 0) {
+            new_dist_s = distanceS(cur_col - 1, cur_row, plr.getCol(), plr.getRow());
+            if(max_dist_s < new_dist_s) {
+                max_dist_s = new_dist_s;
+                dest[0] = cur_col - 1;
+                dest[1] = cur_row;
+            }
+        }
+        if(cur_row - 1 >= 0) {
+            new_dist_s = distanceS(cur_col, cur_row - 1, plr.getCol(), plr.getRow());
+            if(max_dist_s < new_dist_s){
+                max_dist_s = new_dist_s;
+                dest[0] = cur_col;
+                dest[1] = cur_row - 1;
+            }
+        }
+        if(cur_col + 1 < max_cols) {
+            new_dist_s = distanceS(cur_col + 1, cur_row, plr.getCol(), plr.getRow());
+            if(max_dist_s < new_dist_s) {
+                max_dist_s = new_dist_s;
+                dest[0] = cur_col + 1;
+                dest[1] = cur_row;
+            }
+        }
+        if(cur_row + 1 < max_rows) {
+            new_dist_s = distanceS(cur_col, cur_row + 1, plr.getCol(), plr.getRow());
+            if(max_dist_s < new_dist_s) {
+                dest[0] = cur_col;
+                dest[1] = cur_row + 1;
+            }
+        }
+    }
+}
+
+void Monster::randMove(Player plr, int max_cols, int max_rows) {
     
 }
 
-int Monster::getDist(int x_coord, int y_coord) const {
-    int dx = x_coord - x;
-    int dy = y_coord - y;
+int Monster::distanceS(int col_a, int row_a, int col_b, int row_b) const {
+    return ((col_a - col_b) * (col_a - col_b) + (row_a - row_b) * (row_a - row_b));
+}
 
-    return (dx*dx + dy*dy);
+int Monster::getDistS(int col_coord, int row_coord) const {
+    int dcol = col_coord - col;
+    int drow = row_coord - row;
+
+    return (dcol*dcol + drow*drow);
 }
 
 char Monster::getToken() const {
     return token;
 }
 
-int Monster::getX() const {
-    return x;
+int Monster::getCol() const {
+    return col;
 }
 
-int Monster::getY() const {
-    return y;
+int Monster::getRow() const {
+    return row;
 }
