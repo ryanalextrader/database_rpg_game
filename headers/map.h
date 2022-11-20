@@ -33,6 +33,6 @@ class Map{
         int getNumRows() const;
         int getNumCols() const;
 
-        void printGrid() const;
+        void printGrid();
 };
 #endif

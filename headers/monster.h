@@ -3,10 +3,24 @@
 
 #include ".\player.h"
 #include <cmath>
+#include <string>
+using std::string;
 using std::sqrt;
 
 class Monster{
 private:
+    string name;
+    int max_hp;
+    int cur_hp;
+    string desc;
+
+    int atk_range;
+    int atk;
+    int atk_var;
+
+    float acc;
+    float acc_rate;
+
     char token;
     int col;
     int row;
@@ -29,6 +43,9 @@ public:
     bool canMove(int col_coord, int row_coord) const;
     bool canApproach(Player plr) const;
     bool canSee(Player plr);
+
+    bool canAttack(int target_row, int target_col) const;
+    int rollAttack(int target_row, int target_col) const;
 
     void setDest(Player plr, int max_cols, int max_rows);
 

@@ -167,7 +167,7 @@ int Map::getNumCols() const {
     return grid[0].size();
 }
 
-void Map::printGrid() const {
+void Map::printGrid() {
 
     setCursorPos(0, 0);
 
@@ -183,18 +183,35 @@ void Map::printGrid() const {
         for(int j = 0; j < grid[0].size(); j++){
             changeColor(i, j);
             if(i == crsr.getRow() && j == crsr.getCol()) {
-                cout << "[" << grid[i][j] << "]"; 
+                if(grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd && plr.canAttack(i, j)){
+                    setTextColor(14);
+                    cout << "[";
+                    changeColor(i,j);
+                    cout << grid[i][j];
+                    setTextColor(14);
+                    cout << "]";
+                }
+                else{
+                    cout << "[" << grid[i][j] << "]"; 
+                }
                 cursor_edge = true;
             }
             else{
-                if(!cursor_edge){
+                if(!cursor_edge && !(plr.canAttack(i, j) && grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd)){
                     cout << " ";
+                }
+                else if(!cursor_edge && plr.canAttack(i, j) && grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd){
+                    cout << "!";
                 }
                 else{
                     cursor_edge = false;
                 }
                 cout << grid[i][j];
             }
+            //if(cursor_edge && monster_loc)
+            //move i/o cursor before grid[i][j]
+            //print yellow cursor
+            //move after
         }
         if(!cursor_edge){
             cout << " ";

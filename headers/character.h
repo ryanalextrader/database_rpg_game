@@ -1,10 +1,7 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef CHARACTER_H
+#define CHARACTER_H
 
-#include <cmath>
-using std::sqrt;
-
-class Player{
+class Character {
 private:
     char token;
     int row;
@@ -20,11 +17,11 @@ private:
     float acc_rate; //how much the accuracy decreases every unit of distance
 
 public:
-    Player();
-    Player(int row_coord, int col_coord);
+    Character();
+    Character(char symbol, int row_coord, int col_coord, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
 
-    bool updateCoords(int row_coord, int col_coord);
-    bool canMove(int row_coord, int col_coord) const;
+    void setCoords(int row_coord, int col_coord);
+    bool canMove(int row_coord, int col_coord);
 
     bool canAttack(int target_row, int target_col) const;
     int rollAttack(int target_row, int target_col) const; //returns -1 if the attack misses
