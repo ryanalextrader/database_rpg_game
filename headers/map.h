@@ -16,6 +16,8 @@ class Map{
         vector<vector<int>> color_bkgrnd;
         char bkgrnd;
         int phase;
+        int block_width;
+        string activity;
         Player plr;
         vector<Monster> mnstr;
         Cursor crsr;
@@ -39,5 +41,7 @@ class Map{
         int getNumCols() const;
 
         void printGrid();
+        void printMonstBlock();
+        void printPlrBlock();
 };
 #endif

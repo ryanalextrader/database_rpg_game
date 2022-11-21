@@ -2,13 +2,6 @@
 #include "windows.h"
 #include "..\headers\consInteraction.h"
 
-void setCursorPos(int x, int y){
-    static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    std::cout.flush();
-    COORD coord = {(SHORT)x, (SHORT)y};
-    SetConsoleCursorPosition(hOut, coord);
-}
-
 /*
 The different color codes are
 
@@ -53,4 +46,11 @@ void clearScreen(){
     FillConsoleOutputAttribute(hOut, csbi.wAttributes, length, topLeft, &written);
 
     SetConsoleCursorPosition(hOut, topLeft);
+}
+
+void setCursorPos(int x, int y){
+    static const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    std::cout.flush();
+    COORD coord = {(SHORT)x, (SHORT)y};
+    SetConsoleCursorPosition(hOut, coord);
 }

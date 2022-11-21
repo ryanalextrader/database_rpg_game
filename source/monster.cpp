@@ -2,7 +2,7 @@
 
 Monster::Monster() : Monster(0,0,'0',2,1,0) {}
 
-Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB) : Character(symbol, row_coord, col_coord, 3, 1, 1, 3, 1, .75, 0.0) {
+Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB) : Character(symbol, row_coord, col_coord, 3, 10, 1, 3, 1, .75, 0.0) {
     // col = col_coord;
     // row = row_coord;
     // token = symbol;
@@ -16,6 +16,9 @@ Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int beh
     spotted = false;
     dead = false;
     b_index = 2;
+
+    name = "MONSTER";
+    desc = "Indescribable creature, indescribably ugly";
 }
 
 void Monster::updateCoords() {
@@ -233,4 +236,12 @@ int Monster::getDistS(int col_coord, int row_coord) const {
 
 char Monster::getToken() const {
     return token;
+}
+
+string Monster::getName() const {
+    return name;
+}
+
+string Monster::getDesc() const {
+    return desc;
 }

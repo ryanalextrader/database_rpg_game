@@ -2,7 +2,7 @@
 
 Player::Player() : Player(0,0) {}
 
-Player::Player(int row_coord, int col_coord) : Character('@', row_coord, col_coord, 4, 20, 3, 5, 2, 1.0, 0) {
+Player::Player(int row_coord, int col_coord) : Character('@', row_coord, col_coord, 4, 50, 3, 5, 2, 1.0, 0) {
     // row = row_coord;
     // col = col_coord;
     // move = 4;

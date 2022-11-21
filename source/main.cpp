@@ -1,4 +1,7 @@
+//credit sources :)
+
 #include <iostream>
+#include <iomanip>
 #include <ctime>
 #include "windows.h"
 #include "..\headers\cursor.h"
@@ -59,6 +62,7 @@ int main(){
     clearScreen();
     game.printGrid();
     gameLoop(game);
+
     // int rise = -4;
     // int run = -3;
     // int move = 3;

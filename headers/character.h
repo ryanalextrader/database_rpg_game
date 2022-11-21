@@ -36,6 +36,12 @@ public:
     int getCol() const;
     virtual char getToken() const;
     bool isDead() const;
+
+    int getMaxHp() const;
+    int getCurHp() const;
+    int getAtk() const;
+    int getAtkRange() const;
+    int getMove() const;
 };
 
 #endif

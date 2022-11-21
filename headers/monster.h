@@ -44,6 +44,8 @@ public:
     void randMove(Player plr, int max_cols, int max_rows); //move within range, not onto the player
 
     char getToken() const;
+    string getName() const;
+    string getDesc() const;
 };
 
 #endif

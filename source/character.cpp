@@ -92,3 +92,19 @@ char Character::getToken() const {
 bool Character::isDead() const {
     return dead;
 }
+
+int Character::getMaxHp() const {
+    return max_hp;
+}
+int Character::getCurHp() const {
+    return cur_hp;
+}
+int Character::getAtk() const {
+    return atk;
+}
+int Character::getAtkRange() const {
+    return atk_range;
+}
+int Character::getMove() const {
+    return move;
+}

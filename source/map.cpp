@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "..\headers\map.h"
 #include "..\headers\consInteraction.h"
 #include "windows.h"
@@ -84,6 +85,7 @@ Map::Map() : Map(12, 12, '+', 7) {}
 Map::Map(int rows, int cols, char back, int num_monst){
     plr = Player(rand() % rows, rand() % cols);
     phase = 0;
+    block_width = 20;
 
     for(int i = 0; i < num_monst; i++) {
         mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 1, 1, 1));
@@ -269,10 +271,6 @@ void Map::printGrid() {
                 }
                 cout << grid[i][j];
             }
-            //if(cursor_edge && monster_loc)
-            //move i/o cursor before grid[i][j]
-            //print yellow cursor
-            //move after
         }
         if(!cursor_edge){
             cout << " ";
@@ -285,4 +283,66 @@ void Map::printGrid() {
     for(int i = 0; i < 2 * (grid[0].size() + 2) - 1; i++) {
         cout << "#";
     }
+    printMonstBlock();
+    printPlrBlock();
+}
+
+void Map::printMonstBlock(){
+    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
+    cout << endl << activity << endl;
+    block_width = 15;
+    cout << "+" << string(block_width, '-') << "+" << endl;
+    if(mnstr_index >=0){
+    //name
+        cout << "|" << setw(block_width) << mnstr[mnstr_index].getName() << "|" << endl;
+    //hp
+        string m_hp = to_string(mnstr[mnstr_index].getCurHp()) + "/" + to_string(mnstr[mnstr_index].getMaxHp());
+        cout << "|" << setw(block_width) << m_hp << "|" << endl;
+    //attack
+        string m_attack = to_string(mnstr[mnstr_index].getAtk()) + " ATK";
+        cout << "|" << setw(block_width) << m_attack << "|" << endl;
+    //move, range
+        string m_threat_range = to_string(mnstr[mnstr_index].getMove()) + " M, " + to_string(mnstr[mnstr_index].getAtkRange()) + " R";
+        cout << "|" << setw(block_width) << m_threat_range << "|" << endl;
+    }
+    else{
+        for(int i = 0; i < 4; i++){
+            cout << "|" << setw(block_width + 1) << "|" << endl;
+        }
+    }
+    cout << "+" << string(block_width, '-') << "+" << endl;
+    if(mnstr_index >= 0)
+        cout << mnstr[mnstr_index].getDesc();
+    else
+        cout << string(200, ' ');
+}
+
+void Map::printPlrBlock(){
+    int y_pos = 3 + grid.size();
+    int x_pos = 2 + block_width;
+    setCursorPos(x_pos, y_pos);
+    cout << "+" << string(block_width, '-') << "+";
+//name
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    cout << "|" << setw(block_width) << "YOU" << "|";
+//hp
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    string hp = to_string(plr.getCurHp()) + "/" + to_string(plr.getMaxHp());
+    cout << "|" << setw(block_width) << hp << "|";
+//atk
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    string attack = to_string(plr.getAtk()) + " ATK";
+    cout << "|" << setw(block_width) << attack << "|";
+//move, range
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    string range = to_string(plr.getMove()) + " M, " + to_string(plr.getAtkRange()) + " R";
+    cout << "|" << setw(block_width) << range << "|";
+//closing
+    y_pos++;
+    setCursorPos(x_pos,y_pos);
+    cout << "+" << string(block_width, '-') << "+";
 }
