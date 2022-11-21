@@ -15,6 +15,7 @@ class Map{
         vector<vector<int>> color_grid;
         vector<vector<int>> color_bkgrnd;
         char bkgrnd;
+        string theme;
         int phase;
         int block_width;
         string activity;
@@ -27,7 +28,7 @@ class Map{
         int findMonster(int row_coord, int col_coord) const; //returns the index of the monster at certain coordinates. Returns negative if it finds nothing 
     public:
         Map();
-        Map(int rows, int cols, char back, int num_monst);
+        Map(int rows, int cols, char back, int num_monst, string dungeon_theme);
         
         void setNumRowsCols(int row, int col);
         void moveCursor(char dir);
@@ -36,6 +37,7 @@ class Map{
         bool playerAttack();
         void handleMonsters();
         void moveMonster(int index);
+        void monsterAttack(int index);
 
         int getNumRows() const;
         int getNumCols() const;

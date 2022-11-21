@@ -2,16 +2,16 @@
 
 Monster::Monster() : Monster(0,0,'0',2,1,0) {}
 
-Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB) : Character(symbol, row_coord, col_coord, 3, 10, 1, 3, 1, .75, 0.0) {
+Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveS, int behaveD) : Character(symbol, row_coord, col_coord, 3, 10, 1, 3, 1, .75, 0.0) {
     // col = col_coord;
     // row = row_coord;
     // token = symbol;
     // //set sight/move
     // move = 3;
-    sight = 5;
+    sight = 6;
     behave[0] = behaveP;
-    behave[1] = behaveD;
-    behave[2] = behaveB;
+    behave[1] = behaveS;
+    behave[2] = behaveD;
     provoked = false;
     spotted = false;
     dead = false;
@@ -34,7 +34,7 @@ bool Monster::canApproach(Player plr) const {
 }
 
 bool Monster::canSee(Player plr) {
-    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight && !spotted) {
+    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight) {
         spotted = true;
     }
 
@@ -62,6 +62,14 @@ int Monster::checkBehavior() {
 }
 
 void Monster::setDest(Player plr, int max_cols, int max_rows) {
+//make behavior current with monster state
+    //check provoked
+    isProvoked();
+    //check sight
+    canSee(plr);
+    //check behavior
+    checkBehavior();
+
     //random
     if(behave[b_index] == 0) {
         randMove(plr, max_cols, max_rows);

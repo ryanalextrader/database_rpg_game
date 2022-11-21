@@ -80,15 +80,16 @@ int Map::findMonster(int row_coord, int col_coord) const {
     return -1;
 }
 
-Map::Map() : Map(12, 12, '+', 7) {}
+Map::Map() : Map(12, 12, '+', 7, "Fire") {}
 
-Map::Map(int rows, int cols, char back, int num_monst){
+Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme){
     plr = Player(rand() % rows, rand() % cols);
     phase = 0;
     block_width = 20;
+    theme = dungeon_theme;
 
     for(int i = 0; i < num_monst; i++) {
-        mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 1, 1, 1));
+        mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 1, 2, 1));
     }
     
     bkgrnd = back;
@@ -114,6 +115,8 @@ Map::Map(int rows, int cols, char back, int num_monst){
     for(int i = 0; i < mnstr.size(); i++) {
         grid[mnstr[i].getRow()][mnstr[i].getCol()] = mnstr[i].getToken();
     }
+
+    activity = "You enter a " + theme + " room with " + to_string(mnstr.size()) + " monsters. Move when ready.";
 }
 
 void Map::setNumRowsCols(int row, int col){
@@ -159,6 +162,12 @@ void Map::phaseAct(bool skip){
             phase = 0;
         }
     }
+    if(phase == 0){
+        activity = "Move when ready.";
+    }
+    if(phase == 1){
+        activity = "Attack with all your might!";
+    }
 }
 
 bool Map::movePlayer() {
@@ -195,11 +204,16 @@ bool Map::playerAttack(){
 }
 
 void Map::handleMonsters(){
+    bool held = false;
     for(int i = 0; i < mnstr.size(); i++){
         if(!mnstr[i].isDead()) {
             moveMonster(i);
             printGrid();
-            Sleep(150);
+            monsterAttack(i);
+            Sleep(200);
+            while(!(GetAsyncKeyState(' ') & 0x8000)){
+                Sleep(40);
+            }
         }
     }
 }
@@ -220,6 +234,22 @@ void Map::moveMonster(int index) {
         }
     }
     grid[mnstr[index].getRow()][mnstr[index].getCol()] = mnstr[index].getToken();
+}
+
+void Map::monsterAttack(int index) {
+    if(mnstr[index].canAttack(plr.getRow(), plr.getCol())) {
+        cout << "MADE IT" << endl;
+        int dmg = mnstr[index].rollAttack(plr.getRow(), plr.getCol());
+        plr.receiveAttack(dmg);
+        
+        if(dmg < 0) {
+            activity = mnstr[index].getName() + " tried to attack you but missed!";
+        } else if(dmg == 0) {
+            activity = "You deflected " + mnstr[index].getName() + "'s attack!";
+        } else {
+            activity = mnstr[index].getName() + " attacked you for " + to_string(dmg) + " damage!";
+        }
+    }
 }
 
 int Map::getNumRows() const {
@@ -289,6 +319,8 @@ void Map::printGrid() {
 
 void Map::printMonstBlock(){
     int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
+    cout << string(200, ' ');
+    setCursorPos(0, 1 + grid.size());
     cout << endl << activity << endl;
     block_width = 15;
     cout << "+" << string(block_width, '-') << "+" << endl;

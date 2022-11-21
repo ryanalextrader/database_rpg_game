@@ -27,7 +27,7 @@ private:
     int distanceS(int col_a, int row_a, int col_b, int row_b) const; //distance between point a and point b
 public:
     Monster();
-    Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveD, int behaveB);
+    Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveS, int behaveD);
 
     void updateCoords(); //moves monster to dest
     bool canApproach(Player plr) const;
