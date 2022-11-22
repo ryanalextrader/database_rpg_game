@@ -93,34 +93,51 @@ int Map::findMonster(int row_coord, int col_coord) const {
 
 void Map::createNewMap(){
     clearScreen();
+
     level++;
     // to be replaced with queries at future date
-
-}
-
-Map::Map() : Map(12, 12, '+', 7, "Fire", 12) {}
-
-Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr){
-    plr = Player(rand() % rows, rand() % cols, "Bastard sword", "melee");
+    theme = "Fire";
+    wall_color = rand() % 16;
     phase = 0;
-    block_width = 20;
-    theme = dungeon_theme;
-    wall_color = wall_clr;
     active_mons_coord[0] = -1;
     active_mons_coord[1] = -1;
-    level = 0;
-    
 
-    for(int i = 0; i < num_monst; i++) {
-        mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 2, 1, 0));
-    }
-    
-    bkgrnd = back;
+    int min_rows_and_cols = 10;
+    int range = 10;
+
+    int rows = min_rows_and_cols + (rand() % range);
+    int cols = min_rows_and_cols + (rand() % range);
+
+    plr.setCoords(rand() % rows, rand() % cols);
+
+    grid.clear();
     grid.assign(rows, vector<char>());
     for(int i = 0; i < rows; i++){
-        grid[i].assign(cols, back);
+        grid[i].assign(cols, bkgrnd);
     }
     grid[plr.getRow()][plr.getCol()] = plr.getToken();
+
+    int max_num_monsters = 7;
+    int num_monsters = 1 + (rand() % max_num_monsters);
+    string monster_name = "MONSTER";
+    string description = "Indescribable creature, indescribably ugly";
+    char symbol = '0';
+    int behaveP = 2;
+    int behaveS = 1;
+    int behaveD = 0;
+    int spd = 3;
+    int max_health = 10;
+    int mons_range = 1;
+    int damage = 3;
+    int damage_var = 1;
+    float accuracy = 0.75;
+    float accuracy_decay = 0.0;
+    
+    for(int i = 0; i < num_monsters; i++){
+        mnstr.push_back(Monster(monster_name, description, rand() % cols, rand() % rows, 
+        symbol, behaveP, behaveS, behaveD, spd, max_health, mons_range, damage, damage_var, 
+        accuracy, accuracy_decay));
+    }
 
     //make sure no monsters overlap with any other monsters or the player
     bool overlap = true;
@@ -140,7 +157,61 @@ Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int
     }
 
     activity = "You enter a " + theme + " room with " + to_string(mnstr.size()) + " monsters. Move when ready.";
+    printGrid();
 }
+
+Map::Map(){
+    level = 0;
+    bkgrnd = '+';
+    block_width = 20;
+    plr = Player(0, 0, "Bastard sword", "melee");
+    createNewMap();
+}
+
+// Map::Map() : Map(12, 12, '+', 7, "Fire", 12) {}
+
+// Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr){
+//     plr = Player(rand() % rows, rand() % cols, "Bastard sword", "melee");
+//     block_width = 20;
+//     level = 0;
+    
+//     phase = 0;
+//     theme = dungeon_theme;
+//     wall_color = wall_clr;
+//     active_mons_coord[0] = -1;
+//     active_mons_coord[1] = -1;
+    
+
+//     for(int i = 0; i < num_monst; i++) {
+//         mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 2, 1, 0));
+//     }
+    
+//     bkgrnd = back;
+//     grid.assign(rows, vector<char>());
+//     for(int i = 0; i < rows; i++){
+//         grid[i].assign(cols, back);
+//     }
+//     grid[plr.getRow()][plr.getCol()] = plr.getToken();
+
+//     //make sure no monsters overlap with any other monsters or the player
+//     bool overlap = true;
+//     while(overlap) {
+//         overlap = false;
+//         for(int i = 0; i < mnstr.size(); i++) {
+//             if(checkOverlap(i)) {
+//                 handleOverlap(mnstr[i]);
+//                 overlap = true;
+//             }
+//         }
+//     }
+
+//     //add monsters to grid
+//     for(int i = 0; i < mnstr.size(); i++) {
+//         grid[mnstr[i].getRow()][mnstr[i].getCol()] = mnstr[i].getToken();
+//     }
+
+//     activity = "You enter a " + theme + " room with " + to_string(mnstr.size()) + " monsters. Move when ready.";
+// }
 
 void Map::setNumRowsCols(int row, int col){
     // set number of rows in the grid
@@ -167,18 +238,12 @@ void Map::moveCursor(char dir){
 }
 
 void Map::phaseAct(bool skip){
-    //game state
-    if(mnstr.empty()) {
-        activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
-        while(!GetAsyncKeyState(' ') & 0x8000){
-            Sleep(40);
-        }
-        createNewMap();
-    }
     if(plr.getCurHp() == 0) {
         activity = "YOU DIED! GAME OVER!";
         return;
     }
+
+    bool new_map_created = false;
     
     if(skip){
         if(phase == 0){
@@ -201,8 +266,18 @@ void Map::phaseAct(bool skip){
             handleMonsters();
             phase = 0;
         }
+        //game state
+        if(mnstr.empty()) {
+            activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
+            printGrid();
+            while(!(GetAsyncKeyState(' ') & 0x8000)){
+                Sleep(40);
+            }
+            createNewMap();
+            new_map_created = true;
     }
-    if(phase == 0){
+    }
+    if(phase == 0 && !new_map_created){
         activity = "Move when ready.";
     }
     if(phase == 1){

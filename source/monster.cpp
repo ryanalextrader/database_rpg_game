@@ -1,8 +1,12 @@
 #include "..\headers\monster.h"
 
-Monster::Monster() : Monster(0,0,'0',2,1,0) {}
+Monster::Monster() : Monster("MONSTER", "Indescribable creature, indescribably ugly", 
+    0,0,'0',2,1,0, 3, 10, 1, 3, 1, .75, 0.0) {}
 
-Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveS, int behaveD) : Character(symbol, row_coord, col_coord, 3, 10, 1, 3, 1, .75, 0.0) {
+Monster::Monster(string nme, string dsc, int col_coord, int row_coord, char symbol, int behaveP,
+    int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, 
+    float accuracy, float accuracy_decay) : Character(symbol, row_coord, col_coord, spd, max_health, 
+    range, damage, damage_var, accuracy, accuracy_decay) {
     // col = col_coord;
     // row = row_coord;
     // token = symbol;
@@ -17,8 +21,8 @@ Monster::Monster(int col_coord, int row_coord, char symbol, int behaveP, int beh
     dead = false;
     b_index = 2;
 
-    name = "MONSTER";
-    desc = "Indescribable creature, indescribably ugly";
+    name = nme;
+    desc = desc;
 }
 
 void Monster::updateCoords() {

@@ -26,20 +26,20 @@ protected:
     float acc; //1.0 -> always hits, 0.9 -> 90% chance to hit...
     float acc_rate; //how much the accuracy decreases every unit of distance
 
-    int setStr();
-    int setMove();
-    int setMaxHp();
+    // int setStr(int value);
+    // int setMove(int value);
+    // int setMaxHp(int value);
 
-    //positive number
-    int setAtkRange(int value);
-    //positive number
-    int setAtk(int value);
-    //positive number, less than atk
-    int setAtkVar(int value);
-    //0.5 -> 1.0
-    float setAcc(float value);
-    //0.0 - > 0.25, less than acc
-    float setAccDecay(float value);
+    // //positive number
+    // int setAtkRange(int value);
+    // //positive number
+    // int setAtk(int value);
+    // //positive number, less than atk
+    // int setAtkVar(int value);
+    // //0.5 -> 1.0
+    // float setAcc(float value);
+    // //0.0 - > 0.25, less than acc
+    // float setAccDecay(float value);
 public:
     Character();
     Character(char symbol, int row_coord, int col_coord, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);

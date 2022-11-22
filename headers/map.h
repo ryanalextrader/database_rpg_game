@@ -32,7 +32,7 @@ class Map{
         void createNewMap();
     public:
         Map();
-        Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);
+        // Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);
         
         void setNumRowsCols(int row, int col);
         void moveCursor(char dir);

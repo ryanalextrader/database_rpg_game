@@ -20,6 +20,7 @@ private:
     int consume_str;
     int consume_move;
     int consume_dur;
+
 public:
     Player();
     Player(int row_coord, int col_coord, string weapon_n, string weapon_c);
@@ -28,9 +29,13 @@ public:
     bool levelUp(string stat, int amount);
 
     bool consume(string item);
+    int consumeTimer();
+
+    void consumeAgain();
 
     string getWeaponName() const;
     string getWeaponClass() const;
+    string getConsumeEffects() const;
 };
 
 #endif

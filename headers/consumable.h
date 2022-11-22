@@ -26,3 +26,7 @@ public:
 };
 
 #endif
+
+//give consumable to player
+//enforce inventory cap
+//show inventory
