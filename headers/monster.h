@@ -24,9 +24,15 @@ private:
     int dest[2]; //col, row
 
     int getDistS(int col_coord, int row_coord) const; //distance from monster, squared
-    int distanceS(int col_a, int row_a, int col_b, int row_b) const; //distance between point a and point b
+    int distanceS(int col_a, int row_a, int col_b, int row_b) const; //distance between point a and point b, squared
+
+    void adjMove(Player plr, int max_cols, int max_rows); //move adjacent to the player
+    void chaseMove(Player plr, int max_col, int max_row); //move toward the player
+    void fleeMove(Player plr, int max_cols, int max_rows); //move away from the player
+    void randMove(Player plr, int max_cols, int max_rows); //move within range
 public:
     Monster();
+    //behave values: 0 == random, 1 == approach, 2 == flee
     Monster(int col_coord, int row_coord, char symbol, int behaveP, int behaveS, int behaveD);
 
     void updateCoords(); //moves monster to dest
@@ -38,11 +44,8 @@ public:
 
     void setDest(Player plr, int max_cols, int max_rows);
 
-    void adjMove(Player plr, int max_cols, int max_rows); //move adjacent to the player
-    void chaseMove(Player plr, int max_col, int max_row); //move toward the player
-    void fleeMove(Player plr, int max_cols, int max_rows); //move away from the player
-    void randMove(Player plr, int max_cols, int max_rows); //move within range, not onto the player
-
+    //0 == random, 1 == approach player, 2 == flee player
+    int getCurBehavior() const;
     char getToken() const;
     string getName() const;
     string getDesc() const;

@@ -242,6 +242,10 @@ int Monster::getDistS(int col_coord, int row_coord) const {
     return (dcol*dcol + drow*drow);
 }
 
+int Monster::getCurBehavior() const {
+    return behave[b_index];
+}
+
 char Monster::getToken() const {
     return token;
 }
