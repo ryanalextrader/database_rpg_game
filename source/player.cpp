@@ -40,7 +40,11 @@ bool Player::levelUp(string stat, int amount){
     return false;
 }
 
-bool Player::consume(string item) {
+void Player::consume(int index) {
+    if(index > inventory.size()) {
+        return false;
+    }
+    
     //reset consumable buffs
     if(consume_dur > 0) {
         consumeAgain();
@@ -48,13 +52,8 @@ bool Player::consume(string item) {
 
     //look through the inventory
     list<Consumable>::iterator inv_cursor = inventory.begin();
-    while(inv_cursor->getName() != item && inv_cursor != inventory.end()) {
+    for(int i = 1; i < index; i++) {
         inv_cursor++;
-    }
-
-    //return false if the item is not found
-    if(inv_cursor->getName() != item) {
-        return false;
     }
 
     //consume the item
@@ -70,8 +69,6 @@ bool Player::consume(string item) {
 
     str += consume_str;
     move += consume_move;
-
-    return true;
 }
 
 int Player::consumeTimer() {
@@ -86,9 +83,44 @@ int Player::consumeTimer() {
     return consume_dur;
 }
 
+bool Player::addItem(Consumable item) {
+    if(inventory.size() < inventory_cap) {
+        inventory.push_back(item);
+        return true;
+    }
+    return false;
+}
+
+bool Player::replaceItem(Consumable n_item, int index) {
+    if(index > inventory.size()) {
+        return false;
+    }
+
+    list<Consumable>::iterator inv_crsr = inventory.begin();
+    
+    //iterate to the item to be replaced
+    for(int i = 1; i < index; i++) {
+        inv_crsr++;
+    }
+
+    inventory.insert(inv_crsr, n_item);
+    inv_crsr++;
+    inventory.erase(inv_crsr);
+}
+
 void Player::consumeAgain() {
     str -= consume_str;
     move -= consume_move;
+}
+
+void Player::tradeWeapons(string wep_name, string wep_class, int wep_atk, int wep_atk_range, int wep_atk_var, float wep_acc, float wep_acc_decay){
+    weapon_name = wep_name;
+    weapon_class = wep_class;
+    atk = wep_atk;
+    atk_range = wep_atk_range;
+    atk_var = wep_atk_var;
+    acc = wep_acc;
+    acc_rate = wep_acc_decay;
 }
 
 string Player::getWeaponName() const{
@@ -100,21 +132,87 @@ string Player::getWeaponClass() const{
 }
 
 string Player::getConsumeEffects() const {
-    string effects = std::to_string(consume_dur) + " t";
-    if(consume_str != 0) {
-        if(consume_str < 0) {
-            effects += ", " + std::to_string(consume_str) + " str";
+    string effects;
+    if(consume_dur > 0) {
+        effects = std::to_string(consume_dur) + " t\n";
+        if(consume_str != 0) {
+            if(consume_str < 0) {
+                effects += std::to_string(consume_str) + " str\n";
+            } else {
+                effects += "+" + std::to_string(consume_str) + " str\n";
+            }
         } else {
-            effects += ", +" + std::to_string(consume_str) + " str";
+            effects += "\n";
         }
-    }
-    if(consume_move != 0) {
-        if(consume_move < 0) {
-            effects += ", " + std::to_string(consume_move) + " move";
+        if(consume_move != 0) {
+            if(consume_move < 0) {
+                effects += std::to_string(consume_move) + " move\n";
+            } else {
+                effects += "+" + std::to_string(consume_move) + " move\n";
+            }
         } else {
-            effects += ", +" + std::to_string(consume_move) + " move";
+            effects += "\n";
         }
+    } else {
+        effects = "no current buffs\n\n\n";
     }
     
     return effects;
+}
+
+string Player::getInventoryList() {
+    if(inventory.empty()) {
+        return "no items in inventory";
+    }
+
+    string inv_list;
+    list<Consumable>::iterator inv_crsr = inventory.begin();
+    int num_items = 1;
+
+    while(inv_crsr != inventory.end()) {
+        inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
+        if(inv_crsr->getHeal() != 0)
+            inv_list += "heal: " + inv_crsr->getHeal();
+        if(inv_crsr->getDur() != 0) {
+            if(inv_crsr->getHeal() != 0)
+                inv_list += ", ";
+            if(inv_crsr->getStrB() != 0)
+                inv_list += "str: " + std::to_string(inv_crsr->getStrB()) + ", ";
+            if(inv_crsr->getMoveB() != 0)
+                inv_list += "move: " + std::to_string(inv_crsr->getMoveB()) + ", ";
+
+            inv_list += "dur: " + inv_crsr->getDur();
+        }
+        inv_list += "\n";
+        inv_crsr++;
+        num_items++;
+    }
+
+    inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
+    if(inv_crsr->getHeal() != 0)
+        inv_list += "heal: " + inv_crsr->getHeal();
+    if(inv_crsr->getDur() != 0) {
+        if(inv_crsr->getHeal() != 0)
+            inv_list += ", ";
+        if(inv_crsr->getStrB() != 0)
+            inv_list += "str: " + std::to_string(inv_crsr->getStrB()) + ", ";
+        if(inv_crsr->getMoveB() != 0)
+            inv_list += "move: " + std::to_string(inv_crsr->getMoveB()) + ", ";
+
+        inv_list += "dur: " + inv_crsr->getDur();
+    }
+
+//inv_list appearance: (these are examples, and not indicative of real items in the game)
+/*
+[1] steak: a juicy, magical slab of meat
+    heal: 5, str: 5, move: 1, dur: 5
+[2] health potion: a simple healing tincture
+    heal: 10
+[3] slippery goop: I don't know how this works...
+    move: 2, dur: 4
+[4] performance enhancing drugs: unimaginable power at the price of your hair
+    str: 6, move: 2, dur 7
+*/
+
+    return inv_list;
 }

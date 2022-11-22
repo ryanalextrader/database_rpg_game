@@ -102,6 +102,7 @@ void Map::createNewMap(){
     active_mons_coord[0] = -1;
     active_mons_coord[1] = -1;
 
+
     int min_rows_and_cols = 10;
     int range = 10;
 
@@ -116,6 +117,8 @@ void Map::createNewMap(){
         grid[i].assign(cols, bkgrnd);
     }
     grid[plr.getRow()][plr.getCol()] = plr.getToken();
+
+    crsr.moveCursor(0, 0, grid.size(), grid[0].size());
 
     int max_num_monsters = 7;
     int num_monsters = 1 + (rand() % max_num_monsters);
@@ -169,16 +172,34 @@ void Map::generateReward(){
 
 void Map:: generateWeapon(){
     string weapon_name = "Great Axe";
-    string weapon_class = "melee";  
-    int atk_range = 
+    string weapon_class = "range";  
+    int atk_range = 1 + (rand() % 5);
+    int atk = 3 + (rand() % 7);
+    int atk_var = 1 + (rand() % atk);
+    float acc = 1.0;
+    float acc_decay = 0.125;
 
-}
+    printWeaponBlock(weapon_name, weapon_class, atk_range, atk, atk_var, acc, acc_decay);
+    cout << "Do you wish to take this weapon and replace your current weapon wtih it? (Y/N)" << endl;
+    
+    bool input = false;
+    while(!input){
+        Sleep(40);
+        if((GetAsyncKeyState('Y') & 0x8000)){
+            plr.tradeWeapons(weapon_name, weapon_class, atk, atk_range, atk_var, acc, acc_decay);
+            input = true;
+        }
+        else if((GetAsyncKeyState('N') & 0x8000)){
+            input = true;
+        }
+    }
+ }
 
 Map::Map(){
     level = 0;
     bkgrnd = '+';
     block_width = 20;
-    plr = Player(0, 0, "Bastard sword", "melee");
+    plr = Player();
     createNewMap();
 }
 
@@ -543,4 +564,24 @@ void Map::printPlrBlock(){
     y_pos++;
     setCursorPos(x_pos,y_pos);
     cout << "+" << string(block_width, '-') << "+";
+}
+
+void Map::printWeaponBlock(string weapon, string weapon_class, int atk_range, int atk, int atk_var, float acc, float acc_decay){
+    clearScreen();
+    cout << "You found a new weapon!" << endl;
+    cout << "+" << string('-', block_width) << "++" << string('-', block_width) << "+" << endl;
+    cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "DISCOVERED WEAPON" << "|" << endl;   
+    cout << "|" << setw(block_width) << plr.getWeaponName() << "||" << setw(block_width) << weapon_name << "|" << endl;
+    cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" ;
+    string attack = "Attack: " + to_string(plr.getAtk());
+    cout << "|" << setw(block_width) << attack << "||" << setw(block_width) << atk << "|" << endl;
+    string range = "Range: " + to_string(plr.getAtkRange());
+    cout << "|" << setw(block_width) << range << "||" << setw(block_width) << atk_range << "|" << endl;
+    string attack_var = "Attack Var: " + to_string(plr.getAtkVar());
+    cout << "|" << setw(block_width) << attack_var << "||" << setw(block_width) << atk_var << "|" << endl;
+    string accuracy = "Accuracy: " + to_string(plr.getAcc());
+    cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << acc << "|" << endl;
+    string accuracy_decay = "Accuracy Decay: " + to_string(plr.getAccRate());
+    cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << acc_decay << "|" << endl;
+    cout << "+" << string('-', block_width) << "++" << string("-", block_width) << "+" << endl;
 }

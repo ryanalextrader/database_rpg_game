@@ -48,7 +48,7 @@ public:
     bool canMove(int row_coord, int col_coord) const;
 
     bool canAttack(int target_row, int target_col) const;
-    int rollAttack(int target_row, int target_col) const; //returns -1 if the attack misses
+    int rollAttack(int target_row, int target_col) const; //returns -1 if the attack misses, NEED TO ACCOUNT FOR STRENGTH!!!
     int receiveAttack(int dmg); //returns cur_hp *after* taking damage
 
     int getRow() const;
@@ -60,6 +60,9 @@ public:
     int getCurHp() const;
     int getAtk() const;
     int getAtkRange() const;
+    int getAtkVar() const;
+    float getAcc() const;
+    float getAccRate() const;
     int getMove() const;
 };
 

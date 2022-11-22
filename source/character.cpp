@@ -96,15 +96,31 @@ bool Character::isDead() const {
 int Character::getMaxHp() const {
     return max_hp;
 }
+
 int Character::getCurHp() const {
     return cur_hp;
 }
+
 int Character::getAtk() const {
     return atk;
 }
+
 int Character::getAtkRange() const {
     return atk_range;
 }
+
+int Character::getAtkVar() const{
+    return atk_range;
+}
+
+float Character::getAcc() const{
+    return acc;
+}
+
+float Character::getAccRate() const{
+    return acc_rate;
+}
+
 int Character::getMove() const {
     return move;
 }

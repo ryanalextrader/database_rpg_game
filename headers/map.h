@@ -32,6 +32,7 @@ class Map{
         void createNewMap();
         void generateReward();
         void generateWeapon();
+        void generateItem();
     public:
         Map();
         // Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);
@@ -54,5 +55,6 @@ class Map{
         void printGrid();
         void printMonstBlock();
         void printPlrBlock();
+        void printWeaponBlock(string weapon_name, string weapon_class, int atk_range, int atk, int atk_var, float acc, float acc_decay);
 };
 #endif

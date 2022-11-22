@@ -10,6 +10,8 @@ using std::list;
 using std::string;
 using std::sqrt;
 
+const int inventory_cap = 9;
+
 class Player : public Character{
 private:
     string weapon_name;
@@ -28,14 +30,27 @@ public:
     bool updateCoords(int row_coord, int col_coord);
     bool levelUp(string stat, int amount);
 
-    bool consume(string item);
+    //false if index is not in inventory
+    bool consume(int index);
     int consumeTimer();
 
+    //returns false if inventory is full
+    bool addItem(Consumable item);
+
+    //n_item: the new item to place in the inventory
+    //index: integer in the range [1,9], corresponding to the index in getInventoryList()
+    //returns false if index is not in inventory
+    bool replaceItem(Consumable n_item, int index);
+
+    //reset consumable effects in preparation of consuming a new item
     void consumeAgain();
+
+    void tradeWeapons(string wep_name, string wep_class, int wep_atk, int wep_atk_range, int wep_atk_var, float wep_acc, float wep_acc_decay);
 
     string getWeaponName() const;
     string getWeaponClass() const;
     string getConsumeEffects() const;
+    string getInventoryList();
 };
 
 #endif

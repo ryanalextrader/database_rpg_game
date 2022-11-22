@@ -3,7 +3,7 @@
 Monster::Monster() : Monster("MONSTER", "Indescribable creature, indescribably ugly", 
     0,0,'0',2,1,0, 3, 10, 1, 3, 1, .75, 0.0) {}
 
-Monster::Monster(string nme, string dsc, int col_coord, int row_coord, char symbol, int behaveP,
+Monster::Monster(string monst_name, string monst_desc, int col_coord, int row_coord, char symbol, int behaveP,
     int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, 
     float accuracy, float accuracy_decay) : Character(symbol, row_coord, col_coord, spd, max_health, 
     range, damage, damage_var, accuracy, accuracy_decay) {
@@ -21,8 +21,8 @@ Monster::Monster(string nme, string dsc, int col_coord, int row_coord, char symb
     dead = false;
     b_index = 2;
 
-    name = nme;
-    desc = desc;
+    name = monst_name;
+    desc = monst_desc;
 }
 
 void Monster::updateCoords() {
