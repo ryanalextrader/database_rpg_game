@@ -30,6 +30,8 @@ class Map{
         void handleOverlap(Monster& mnstr);
         int findMonster(int row_coord, int col_coord) const; //returns the index of the monster at certain coordinates. Returns negative if it finds nothing 
         void createNewMap();
+        void generateReward();
+        void generateWeapon();
     public:
         Map();
         // Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);

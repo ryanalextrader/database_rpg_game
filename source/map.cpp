@@ -160,6 +160,20 @@ void Map::createNewMap(){
     printGrid();
 }
 
+void Map::generateReward(){
+    int reward = rand() % 3;
+    if(reward == 0){ // new weapon
+        generateWeapon();
+    }
+}
+
+void Map:: generateWeapon(){
+    string weapon_name = "Great Axe";
+    string weapon_class = "melee";  
+    int atk_range = 
+
+}
+
 Map::Map(){
     level = 0;
     bkgrnd = '+';

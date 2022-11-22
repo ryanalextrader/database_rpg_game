@@ -2,9 +2,12 @@
 #include <string>
 using std::string;
 
-Player::Player() : Player(0,0, "Great Sword", "melee") {}
+Player::Player() : Player(0,0, "Great Sword", "melee", 4, 50, 3, 5, 2, 1.0, 0) {}
 
-Player::Player(int row_coord, int col_coord, string weapon_n, string weapon_c) : Character('@', row_coord, col_coord, 4, 50, 3, 5, 2, 1.0, 0) {
+Player::Player(int row_coord, int col_coord, string weapon_n, string weapon_c, 
+    int spd, int max_health, int range, int damage, int damage_var, float accuracy, 
+    float accuracy_decay) : Character('@', row_coord, col_coord, spd, max_health, 
+    range, damage, damage_var, accuracy, accuracy_decay) {
     weapon_name = weapon_n;
     weapon_class = weapon_c;
 }
