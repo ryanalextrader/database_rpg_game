@@ -62,10 +62,4 @@ int main(){
     clearScreen();
     game.printGrid();
     gameLoop(game);
-
-    // int rise = -4;
-    // int run = -3;
-    // int move = 3;
-    // int num = sqrt((move*move) * (1 + ((run*run) / (rise*rise))));
-    // cout << num << endl;
 }

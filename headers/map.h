@@ -19,6 +19,7 @@ class Map{
         int block_width;
         string activity;
         int active_mons_coord[2];
+        int level;
 
         Player plr;
         vector<Monster> mnstr;
@@ -28,6 +29,7 @@ class Map{
         bool checkOverlap(int i); //returns true if the monster overlaps with a) any prior monster or b) the player
         void handleOverlap(Monster& mnstr);
         int findMonster(int row_coord, int col_coord) const; //returns the index of the monster at certain coordinates. Returns negative if it finds nothing 
+        void createNewMap();
     public:
         Map();
         Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);

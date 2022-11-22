@@ -18,6 +18,32 @@ bool Player::updateCoords(int row_coord, int col_coord) {
     return true;
 }
 
+bool Player::levelUp(string stat, int amount){
+    if(amount > 0){
+        if(stat == "speed"){
+            move += amount;
+        }
+        else if(stat == "max_hp"){
+            max_hp += amount;
+        }
+        else if(stat == "attack"){
+            atk += amount;
+        }
+        else{
+            return false;
+        }
+        return true;
+    }
+    return false;
+}
+
+bool Player::consume(string item) {
+    int inv_size = inventory.size(); //store size before consumption to ensure that we did, in fact, consume
+
+    list<Consumable>::iterator inv_cursor = inventory.begin();
+    //TODO: FINISH
+}
+
 string Player::getWeaponName() const{
     return weapon_name;
 }

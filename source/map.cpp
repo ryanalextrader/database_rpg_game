@@ -91,6 +91,13 @@ int Map::findMonster(int row_coord, int col_coord) const {
     return -1; // signifies that no such monster was found within the monster vector
 }
 
+void Map::createNewMap(){
+    clearScreen();
+    level++;
+    // to be replaced with queries at future date
+
+}
+
 Map::Map() : Map(12, 12, '+', 7, "Fire", 12) {}
 
 Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr){
@@ -101,6 +108,8 @@ Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int
     wall_color = wall_clr;
     active_mons_coord[0] = -1;
     active_mons_coord[1] = -1;
+    level = 0;
+    
 
     for(int i = 0; i < num_monst; i++) {
         mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 2, 1, 0));
@@ -160,8 +169,11 @@ void Map::moveCursor(char dir){
 void Map::phaseAct(bool skip){
     //game state
     if(mnstr.empty()) {
-        activity = "ALL MONSTERS VANQUISHED!";
-        return;
+        activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
+        while(!GetAsyncKeyState(' ') & 0x8000){
+            Sleep(40);
+        }
+        createNewMap();
     }
     if(plr.getCurHp() == 0) {
         activity = "YOU DIED! GAME OVER!";
