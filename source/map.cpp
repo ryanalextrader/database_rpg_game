@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <cmath>
 #include "..\headers\map.h"
 #include "..\headers\consumable.h"
 #include "..\headers\consInteraction.h"
@@ -166,7 +167,7 @@ void Map::createNewMap(){
 
 void Map::generateReward(){
     int reward = rand() % 3;
-    reward = 1;
+    reward = 0;
     if(reward == 0){ // new weapon
         generateWeapon();
     }
@@ -347,19 +348,19 @@ void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_rang
     setTextColor(15);
     cout << "You found a new weapon!" << endl;
     cout << "+" << string(block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
-    cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "DISCOVERED WEAPON" << "|" << endl;   
+    cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "NEW WEAPON" << "|" << endl;   
     cout << "|" << setw(block_width) << plr.getWeaponName() << "||" << setw(block_width) << weapon_name << "|" << endl;
-    cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" ;
+    cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" << endl;
     string attack = "Attack: " + to_string(plr.getAtk());
-    cout << "|" << setw(block_width) << attack << "||" << setw(block_width) << atk << "|" << endl;
+    cout << "|" << setw(block_width) << attack << "||" << setw(block_width) << "Attack: " + to_string(atk) << "|" << endl;
     string range = "Range: " + to_string(plr.getAtkRange());
-    cout << "|" << setw(block_width) << range << "||" << setw(block_width) << atk_range << "|" << endl;
+    cout << "|" << setw(block_width) << range << "||" << setw(block_width) << "Range: " + to_string(atk_range) << "|" << endl;
     string attack_var = "Attack Var: " + to_string(plr.getAtkVar());
-    cout << "|" << setw(block_width) << attack_var << "||" << setw(block_width) << atk_var << "|" << endl;
-    string accuracy = "Accuracy: " + to_string(plr.getAcc());
-    cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << acc << "|" << endl;
-    string accuracy_decay = "Accuracy Decay: " + to_string(plr.getAccRate());
-    cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << acc_decay << "|" << endl;
+    cout << "|" << setw(block_width) << attack_var << "||" << setw(block_width) << "Attack Var: " + to_string(atk_var) << "|" << endl;
+    string accuracy = "Accuracy: " + to_string(plr.getAcc()).substr(0, 4); // substr for rounding to two decimal places
+    cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << "Accuracy: " + to_string(acc).substr(0,4) << "|" << endl;
+    string accuracy_decay = "Decay: " + to_string(plr.getAccRate()).substr(0, 4); // substr for rounding to two decimal places
+    cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << "Decay: " + to_string(acc_decay).substr(0,4) << "|" << endl;
     cout << "+" << string(block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
 }
 
