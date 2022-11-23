@@ -23,6 +23,8 @@ public:
     int getStrB() const;
     int getMoveB() const;
     int getDur() const;
+
+    string getStats() const;
 };
 
 #endif

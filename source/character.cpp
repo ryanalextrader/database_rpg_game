@@ -62,7 +62,7 @@ int Character::rollAttack(int target_row, int target_col) const {
     //damage mod: between -atk_var and atk_var
     roll = (rand() % ((2 * atk_var) + 1)) - atk_var;
     
-    return atk + roll;
+    return str + atk + roll;
 }
 
 int Character::receiveAttack(int dmg) {

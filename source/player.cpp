@@ -40,7 +40,7 @@ bool Player::levelUp(string stat, int amount){
     return false;
 }
 
-void Player::consume(int index) {
+bool Player::consume(int index) {
     if(index > inventory.size()) {
         return false;
     }
@@ -99,7 +99,7 @@ bool Player::replaceItem(Consumable n_item, int index) {
     list<Consumable>::iterator inv_crsr = inventory.begin();
     
     //iterate to the item to be replaced
-    for(int i = 1; i < index; i++) {
+    for(int i = 1; i <= index; i++) {
         inv_crsr++;
     }
 
@@ -154,7 +154,7 @@ string Player::getConsumeEffects() const {
             effects += "\n";
         }
     } else {
-        effects = "no current buffs\n\n\n";
+        effects = "no current buffs";
     }
     
     return effects;

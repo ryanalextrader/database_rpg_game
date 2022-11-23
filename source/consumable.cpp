@@ -29,3 +29,21 @@ int Consumable::getMoveB() const {
 int Consumable::getDur() const {
     return dur;
 }
+
+string Consumable::getStats() const {
+    string effects = name + ": " + desc + "\n";
+    if(heal != 0) {
+        effects += std::to_string(heal) + " hp";
+    }
+    if(dur > 0) {
+        if(heal != 0)
+            effects += ", ";
+        if(str_b != 0)
+            effects += std::to_string(str_b) + " str, ";
+        if(move_b != 0)
+            effects += std::to_string(move_b) + " move, ";
+        effects += std::to_string(dur) + " turns";
+    }
+
+    return effects;
+}

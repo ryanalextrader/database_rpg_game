@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "..\headers\map.h"
+#include "..\headers\consumable.h"
 #include "..\headers\consInteraction.h"
 #include "windows.h"
 
@@ -168,6 +169,12 @@ void Map::generateReward(){
     if(reward == 0){ // new weapon
         generateWeapon();
     }
+    else if(reward == 1){
+        generateItem();
+    }
+    else{
+        generateStatBuff();
+    }
 }
 
 void Map:: generateWeapon(){
@@ -180,7 +187,7 @@ void Map:: generateWeapon(){
     float acc_decay = 0.125;
 
     printWeaponBlock(weapon_name, weapon_class, atk_range, atk, atk_var, acc, acc_decay);
-    cout << "Do you wish to take this weapon and replace your current weapon wtih it? (Y/N)" << endl;
+    cout << "Do you wish to take this weapon and replace your current weapon with it? (Y/N)" << endl;
     
     bool input = false;
     while(!input){
@@ -193,7 +200,169 @@ void Map:: generateWeapon(){
             input = true;
         }
     }
- }
+}
+
+void Map::generateItem() {
+    string item_name = "Potion";
+    string item_desc = "A mysterious vial of liquid";
+    
+    //initial values for a potion
+    int healing = rand() % 7;
+    int dur = rand() % 8;
+    int spd_buff = rand() % 3;
+    int str_buff = rand() % 5;
+
+    //ensure that the potion has substantial buffs if no healing
+    if(healing == 0) {
+        dur = 4 + rand() % 4;
+        spd_buff = 1 + (rand() % 3);
+        str_buff = 2 + (rand() % 5);
+    }
+    //ensure that the potion has adequate healing if no buffs
+    if(dur == 0) {
+        spd_buff = 0;
+        str_buff = 0;
+        healing = 5 + (rand() % 15);
+    }
+
+    Consumable item(item_name, item_desc, healing, str_buff, spd_buff, dur);
+
+    clearScreen();
+    bool item_state = plr.addItem(item);
+    cout << "You received:\n" << item.getStats() << endl;
+
+    if(!item_state) {
+        cout << "Which item would you like to replace?" << endl;
+        cout << plr.getInventoryList() << "\n[0] keep current items" << endl;
+        bool input = false;
+        while(!input){
+            Sleep(40);
+            for(int i = 1; i < 10; i++) {
+                if(GetAsyncKeyState('0' + i) & 0x8000) {
+                    plr.replaceItem(item, i);
+                    input = true;
+                }
+            }
+            if(GetAsyncKeyState('0') & 0x8000) {
+                input = true;
+            }
+        }
+    }
+}
+
+void Map::generateStatBuff(){
+    //+5 hp
+    //+2 str
+    //+1 move (I'm a little shaky on this, I think any point of movement is way stronger than any point anywhere else)
+    printStatBuffBlock();
+    bool input = false;
+    while(!input){
+        Sleep(40);
+        if(GetAsyncKeyState('1') & 0x8000){
+            plr.levelUp("max_hp", 5);
+            input = true;
+        }
+        else if(GetAsyncKeyState('2') & 0x8000){
+            plr.levelUp("attack", 2);
+            input = true;
+        }
+        else if(GetAsyncKeyState('3') & 0x8000){
+            plr.levelUp("speed", 1);
+            input = true;
+        }
+    }
+}
+
+void Map::printMonstBlock(){
+    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
+    cout << string(200, ' ');
+    setCursorPos(0, 1 + grid.size());
+    cout << endl << activity << endl;
+    block_width = 15;
+    cout << "+" << string(block_width, '-') << "+" << endl;
+    if(mnstr_index >=0){
+    //name
+        cout << "|" << setw(block_width) << mnstr[mnstr_index].getName() << "|" << endl;
+    //hp
+        string m_hp = to_string(mnstr[mnstr_index].getCurHp()) + "/" + to_string(mnstr[mnstr_index].getMaxHp());
+        cout << "|" << setw(block_width) << m_hp << "|" << endl;
+    //attack
+        string m_attack = to_string(mnstr[mnstr_index].getAtk()) + " ATK";
+        cout << "|" << setw(block_width) << m_attack << "|" << endl;
+    //move, range
+        string m_threat_range = to_string(mnstr[mnstr_index].getMove()) + " M, " + to_string(mnstr[mnstr_index].getAtkRange()) + " R";
+        cout << "|" << setw(block_width) << m_threat_range << "|" << endl;
+    }
+    else{
+        for(int i = 0; i < 4; i++){
+            cout << "|" << setw(block_width + 1) << "|" << endl;
+        }
+    }
+    cout << "+" << string(block_width, '-') << "+" << endl;
+    if(mnstr_index >= 0)
+        cout << mnstr[mnstr_index].getDesc();
+    else
+        cout << string(200, ' ');
+}
+
+void Map::printPlrBlock(int y_pos, int x_pos){
+    setCursorPos(x_pos, y_pos);
+    cout << "+" << string(block_width, '-') << "+";
+//name
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    cout << "|" << setw(block_width) << "YOU" << "|";
+//hp
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    string hp = to_string(plr.getCurHp()) + "/" + to_string(plr.getMaxHp());
+    cout << "|" << setw(block_width) << hp << "|";
+//atk
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    string attack = to_string(plr.getAtk()) + " ATK";
+    cout << "|" << setw(block_width) << attack << "|";
+//move, range
+    y_pos++;
+    setCursorPos(x_pos, y_pos);
+    string range = to_string(plr.getMove()) + " M, " + to_string(plr.getAtkRange()) + " R";
+    cout << "|" << setw(block_width) << range << "|";
+//closing
+    y_pos++;
+    setCursorPos(x_pos,y_pos);
+    cout << "+" << string(block_width, '-') << "+";
+}
+
+void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_range, int atk, int atk_var, float acc, float acc_decay){
+    clearScreen();
+    setTextColor(15);
+    cout << "You found a new weapon!" << endl;
+    cout << "+" << string('-', block_width) << "++" << string('-', block_width) << "+" << endl;
+    cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "DISCOVERED WEAPON" << "|" << endl;   
+    cout << "|" << setw(block_width) << plr.getWeaponName() << "||" << setw(block_width) << weapon_name << "|" << endl;
+    cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" ;
+    string attack = "Attack: " + to_string(plr.getAtk());
+    cout << "|" << setw(block_width) << attack << "||" << setw(block_width) << atk << "|" << endl;
+    string range = "Range: " + to_string(plr.getAtkRange());
+    cout << "|" << setw(block_width) << range << "||" << setw(block_width) << atk_range << "|" << endl;
+    string attack_var = "Attack Var: " + to_string(plr.getAtkVar());
+    cout << "|" << setw(block_width) << attack_var << "||" << setw(block_width) << atk_var << "|" << endl;
+    string accuracy = "Accuracy: " + to_string(plr.getAcc());
+    cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << acc << "|" << endl;
+    string accuracy_decay = "Accuracy Decay: " + to_string(plr.getAccRate());
+    cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << acc_decay << "|" << endl;
+    cout << "+" << string('-', block_width) << "++" << string("-", block_width) << "+" << endl;
+}
+
+void Map::printStatBuffBlock(){
+    clearScreen();
+    setTextColor(15);
+    cout << "Choose a stat to increase: " << endl;
+    cout << "\t[1] - Increase maximum hp by 5" << endl;
+    cout << "\t[2] - Increase strength by 2" << endl;
+    cout << "\t[3] - Increase movement by 1" << endl;
+    printPlrBlock(4, 0);
+}
 
 Map::Map(){
     level = 0;
@@ -298,6 +467,7 @@ void Map::phaseAct(bool skip){
         if(playerAttack()){
             printGrid();
             Sleep(1500);
+            plr.consumeTimer();
             handleMonsters();
             phase = 0;
         }
@@ -310,7 +480,7 @@ void Map::phaseAct(bool skip){
             }
             createNewMap();
             new_map_created = true;
-    }
+        }
     }
     if(phase == 0 && !new_map_created){
         activity = "Move when ready.";
@@ -427,6 +597,28 @@ void Map::monsterAttack(int index) {
     }
 }
 
+void Map::inventorySelection(){
+    clearScreen();
+    cout << "Select an item to use: " << endl;
+    cout << plr.getInventoryList() << endl;
+    cout << "[E] Return to game" << endl;
+    bool input = false;
+    while(!input){
+        for(int i = 0; i < 9; i++){
+            if(GetAsyncKeyState('1' + i) & 0x8000){
+                if(plr.consume(i + 1)){
+                    input = true;
+                }
+            }
+        }
+        if(GetAsyncKeyState('E') & 0x8000){
+            input = true;
+        }
+    }
+    clearScreen();
+    printGrid();
+}
+
 void Map::completeFloor() {
     //generate a new floor
 }
@@ -501,87 +693,7 @@ void Map::printGrid() {
         cout << "#";
     }
     printMonstBlock();
-    printPlrBlock();
-}
-
-void Map::printMonstBlock(){
-    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
-    cout << string(200, ' ');
-    setCursorPos(0, 1 + grid.size());
-    cout << endl << activity << endl;
-    block_width = 15;
-    cout << "+" << string(block_width, '-') << "+" << endl;
-    if(mnstr_index >=0){
-    //name
-        cout << "|" << setw(block_width) << mnstr[mnstr_index].getName() << "|" << endl;
-    //hp
-        string m_hp = to_string(mnstr[mnstr_index].getCurHp()) + "/" + to_string(mnstr[mnstr_index].getMaxHp());
-        cout << "|" << setw(block_width) << m_hp << "|" << endl;
-    //attack
-        string m_attack = to_string(mnstr[mnstr_index].getAtk()) + " ATK";
-        cout << "|" << setw(block_width) << m_attack << "|" << endl;
-    //move, range
-        string m_threat_range = to_string(mnstr[mnstr_index].getMove()) + " M, " + to_string(mnstr[mnstr_index].getAtkRange()) + " R";
-        cout << "|" << setw(block_width) << m_threat_range << "|" << endl;
-    }
-    else{
-        for(int i = 0; i < 4; i++){
-            cout << "|" << setw(block_width + 1) << "|" << endl;
-        }
-    }
-    cout << "+" << string(block_width, '-') << "+" << endl;
-    if(mnstr_index >= 0)
-        cout << mnstr[mnstr_index].getDesc();
-    else
-        cout << string(200, ' ');
-}
-
-void Map::printPlrBlock(){
     int y_pos = 3 + grid.size();
     int x_pos = 2 + block_width;
-    setCursorPos(x_pos, y_pos);
-    cout << "+" << string(block_width, '-') << "+";
-//name
-    y_pos++;
-    setCursorPos(x_pos, y_pos);
-    cout << "|" << setw(block_width) << "YOU" << "|";
-//hp
-    y_pos++;
-    setCursorPos(x_pos, y_pos);
-    string hp = to_string(plr.getCurHp()) + "/" + to_string(plr.getMaxHp());
-    cout << "|" << setw(block_width) << hp << "|";
-//atk
-    y_pos++;
-    setCursorPos(x_pos, y_pos);
-    string attack = to_string(plr.getAtk()) + " ATK";
-    cout << "|" << setw(block_width) << attack << "|";
-//move, range
-    y_pos++;
-    setCursorPos(x_pos, y_pos);
-    string range = to_string(plr.getMove()) + " M, " + to_string(plr.getAtkRange()) + " R";
-    cout << "|" << setw(block_width) << range << "|";
-//closing
-    y_pos++;
-    setCursorPos(x_pos,y_pos);
-    cout << "+" << string(block_width, '-') << "+";
-}
-
-void Map::printWeaponBlock(string weapon, string weapon_class, int atk_range, int atk, int atk_var, float acc, float acc_decay){
-    clearScreen();
-    cout << "You found a new weapon!" << endl;
-    cout << "+" << string('-', block_width) << "++" << string('-', block_width) << "+" << endl;
-    cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "DISCOVERED WEAPON" << "|" << endl;   
-    cout << "|" << setw(block_width) << plr.getWeaponName() << "||" << setw(block_width) << weapon_name << "|" << endl;
-    cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" ;
-    string attack = "Attack: " + to_string(plr.getAtk());
-    cout << "|" << setw(block_width) << attack << "||" << setw(block_width) << atk << "|" << endl;
-    string range = "Range: " + to_string(plr.getAtkRange());
-    cout << "|" << setw(block_width) << range << "||" << setw(block_width) << atk_range << "|" << endl;
-    string attack_var = "Attack Var: " + to_string(plr.getAtkVar());
-    cout << "|" << setw(block_width) << attack_var << "||" << setw(block_width) << atk_var << "|" << endl;
-    string accuracy = "Accuracy: " + to_string(plr.getAcc());
-    cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << acc << "|" << endl;
-    string accuracy_decay = "Accuracy Decay: " + to_string(plr.getAccRate());
-    cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << acc_decay << "|" << endl;
-    cout << "+" << string('-', block_width) << "++" << string("-", block_width) << "+" << endl;
+    printPlrBlock(y_pos, x_pos);
 }
