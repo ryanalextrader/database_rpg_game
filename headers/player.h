@@ -6,9 +6,11 @@
 #include <cmath>
 #include <string>
 #include <list>
+#include <vector>
 using std::list;
 using std::string;
 using std::sqrt;
+using std::vector;
 
 const int inventory_cap = 9;
 
@@ -49,8 +51,9 @@ public:
 
     string getWeaponName() const;
     string getWeaponClass() const;
-    string getConsumeEffects() const;
+    vector<string> getConsumeEffects() const;
     string getInventoryList();
+    bool isBuffed() const;
 };
 
 #endif

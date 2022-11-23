@@ -14,6 +14,8 @@ Character::Character(char symbol, int row_coord, int col_coord, int speed, int m
     atk_var = damage_var;
     acc = accuracy;
     acc_rate = accuracy_decay;
+
+    str = 3;
 }
 
 void Character::setCoords(int row_coord, int col_coord) {
@@ -123,4 +125,8 @@ float Character::getAccRate() const{
 
 int Character::getMove() const {
     return move;
+}
+
+int Character::getStr() const {
+    return str;
 }

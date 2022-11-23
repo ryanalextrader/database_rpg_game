@@ -121,7 +121,7 @@ void Map::createNewMap(){
 
     crsr.moveCursor(0, 0, grid.size(), grid[0].size());
 
-    int max_num_monsters = 7;
+    int max_num_monsters = 1;
     int num_monsters = 1 + (rand() % max_num_monsters);
     string monster_name = "MONSTER";
     string description = "Indescribable creature, indescribably ugly";
@@ -130,7 +130,7 @@ void Map::createNewMap(){
     int behaveS = 1;
     int behaveD = 0;
     int spd = 3;
-    int max_health = 10;
+    int max_health = 20;
     int mons_range = 1;
     int damage = 3;
     int damage_var = 1;
@@ -166,6 +166,7 @@ void Map::createNewMap(){
 
 void Map::generateReward(){
     int reward = rand() % 3;
+    reward = 1;
     if(reward == 0){ // new weapon
         generateWeapon();
     }
@@ -209,8 +210,8 @@ void Map::generateItem() {
     //initial values for a potion
     int healing = rand() % 7;
     int dur = rand() % 8;
-    int spd_buff = rand() % 3;
-    int str_buff = rand() % 5;
+    int spd_buff = 1 + rand() % 3;
+    int str_buff = 1 + rand() % 5;
 
     //ensure that the potion has substantial buffs if no healing
     if(healing == 0) {
@@ -229,12 +230,13 @@ void Map::generateItem() {
 
     clearScreen();
     bool item_state = plr.addItem(item);
+    bool input = false;
     cout << "You received:\n" << item.getStats() << endl;
 
+    Sleep(1500);
     if(!item_state) {
         cout << "Which item would you like to replace?" << endl;
         cout << plr.getInventoryList() << "\n[0] keep current items" << endl;
-        bool input = false;
         while(!input){
             Sleep(40);
             for(int i = 1; i < 10; i++) {
@@ -246,6 +248,13 @@ void Map::generateItem() {
             if(GetAsyncKeyState('0') & 0x8000) {
                 input = true;
             }
+        }
+    } else {
+        cout << "Press space to continue.";
+        while(!input) {
+            Sleep(40);
+            if(GetAsyncKeyState(' ') & 0x8000)
+                input = true;
         }
     }
 }
@@ -287,7 +296,7 @@ void Map::printMonstBlock(){
         string m_hp = to_string(mnstr[mnstr_index].getCurHp()) + "/" + to_string(mnstr[mnstr_index].getMaxHp());
         cout << "|" << setw(block_width) << m_hp << "|" << endl;
     //attack
-        string m_attack = to_string(mnstr[mnstr_index].getAtk()) + " ATK";
+        string m_attack = to_string(mnstr[mnstr_index].getAtk() + mnstr[mnstr_index].getStr()) + " ATK";
         cout << "|" << setw(block_width) << m_attack << "|" << endl;
     //move, range
         string m_threat_range = to_string(mnstr[mnstr_index].getMove()) + " M, " + to_string(mnstr[mnstr_index].getAtkRange()) + " R";
@@ -320,7 +329,7 @@ void Map::printPlrBlock(int y_pos, int x_pos){
 //atk
     y_pos++;
     setCursorPos(x_pos, y_pos);
-    string attack = to_string(plr.getAtk()) + " ATK";
+    string attack = to_string(plr.getStr()) + " STR, " + to_string(plr.getAtk()) + " ATK";
     cout << "|" << setw(block_width) << attack << "|";
 //move, range
     y_pos++;
@@ -337,7 +346,7 @@ void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_rang
     clearScreen();
     setTextColor(15);
     cout << "You found a new weapon!" << endl;
-    cout << "+" << string('-', block_width) << "++" << string('-', block_width) << "+" << endl;
+    cout << "+" << string(block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
     cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "DISCOVERED WEAPON" << "|" << endl;   
     cout << "|" << setw(block_width) << plr.getWeaponName() << "||" << setw(block_width) << weapon_name << "|" << endl;
     cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" ;
@@ -351,7 +360,7 @@ void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_rang
     cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << acc << "|" << endl;
     string accuracy_decay = "Accuracy Decay: " + to_string(plr.getAccRate());
     cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << acc_decay << "|" << endl;
-    cout << "+" << string('-', block_width) << "++" << string("-", block_width) << "+" << endl;
+    cout << "+" << string(block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
 }
 
 void Map::printStatBuffBlock(){
@@ -362,6 +371,27 @@ void Map::printStatBuffBlock(){
     cout << "\t[2] - Increase strength by 2" << endl;
     cout << "\t[3] - Increase movement by 1" << endl;
     printPlrBlock(4, 0);
+}
+
+void Map::printPotionBuffBlock(){
+    cout << string(200, ' ');
+    setCursorPos(0, 1 + grid.size());
+    cout << endl << activity << endl;
+    vector<string> buffs = plr.getConsumeEffects();
+    cout << "+" << string(block_width, '-') << "+" << endl;
+    if(!plr.isBuffed()) {
+        cout << "|" << setw(block_width) << buffs[0] << "|";
+        for(int i = 0; i < 4; i++) {
+            cout << "|" << setw(block_width) << " " << "|" << endl;
+        }
+    }
+    else{
+        cout << "|" << setw(block_width) << "BUFFS" << "|" << endl;
+        for(int i = 0; i < 3; i++){
+            cout << "|" << setw(block_width) << buffs[i] << "|" << endl;
+        }
+    }
+    cout << "+" << string(block_width, '-') << "+" << endl;
 }
 
 Map::Map(){
@@ -467,7 +497,6 @@ void Map::phaseAct(bool skip){
         if(playerAttack()){
             printGrid();
             Sleep(1500);
-            plr.consumeTimer();
             handleMonsters();
             phase = 0;
         }
@@ -478,6 +507,7 @@ void Map::phaseAct(bool skip){
             while(!(GetAsyncKeyState(' ') & 0x8000)){
                 Sleep(40);
             }
+            generateReward();
             createNewMap();
             new_map_created = true;
         }
@@ -535,6 +565,8 @@ bool Map::playerAttack(){
 }
 
 void Map::handleMonsters(){
+    plr.consumeTimer();
+
     bool held = false;
     for(int i = 0; i < mnstr.size(); i++){
         if(!mnstr[i].isDead()) {
@@ -601,7 +633,7 @@ void Map::inventorySelection(){
     clearScreen();
     cout << "Select an item to use: " << endl;
     cout << plr.getInventoryList() << endl;
-    cout << "[E] Return to game" << endl;
+    cout << "[0] Return to game" << endl;
     bool input = false;
     while(!input){
         for(int i = 0; i < 9; i++){
@@ -611,7 +643,7 @@ void Map::inventorySelection(){
                 }
             }
         }
-        if(GetAsyncKeyState('E') & 0x8000){
+        if(GetAsyncKeyState('0') & 0x8000){
             input = true;
         }
     }
@@ -692,7 +724,21 @@ void Map::printGrid() {
     for(int i = 0; i < 2 * (grid[0].size() + 2) - 1; i++) {
         cout << "#";
     }
-    printMonstBlock();
+    if(crsr.getRow() == plr.getRow() && crsr.getCol() == plr.getCol()){
+        printPotionBuffBlock();
+    }
+    else{
+        printMonstBlock();
+    }
+    /*
+    +__ str\n
+    +__ move\n
+    __ turns\n
+
+    No current buffs\n
+
+    substr(\n) <- put in block
+    */
     int y_pos = 3 + grid.size();
     int x_pos = 2 + block_width;
     printPlrBlock(y_pos, x_pos);

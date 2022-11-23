@@ -10,6 +10,10 @@ Player::Player(int row_coord, int col_coord, string weapon_n, string weapon_c,
     range, damage, damage_var, accuracy, accuracy_decay) {
     weapon_name = weapon_n;
     weapon_class = weapon_c;
+
+    consume_dur = 0;
+    consume_move = 0;
+    consume_str = 0;
 }
 
 bool Player::updateCoords(int row_coord, int col_coord) {
@@ -69,16 +73,23 @@ bool Player::consume(int index) {
 
     str += consume_str;
     move += consume_move;
+    return true;
 }
 
 int Player::consumeTimer() {
-    if(consume_dur > 0) {
-        consume_dur--;
-    } else {
+    if(consume_dur == 0) {
         str -= consume_str;
         move -= consume_move;
         consume_str = 0;
         consume_move = 0;
+    } else if(consume_dur == 1) {
+        consume_dur--;
+        str -= consume_str;
+        move -= consume_move;
+        consume_str = 0;
+        consume_move = 0;
+    } else {
+        consume_dur--;
     }
     return consume_dur;
 }
@@ -99,13 +110,15 @@ bool Player::replaceItem(Consumable n_item, int index) {
     list<Consumable>::iterator inv_crsr = inventory.begin();
     
     //iterate to the item to be replaced
-    for(int i = 1; i <= index; i++) {
+    for(int i = 1; i < index; i++) {
         inv_crsr++;
     }
 
     inventory.insert(inv_crsr, n_item);
     inv_crsr++;
     inventory.erase(inv_crsr);
+    
+    return true;
 }
 
 void Player::consumeAgain() {
@@ -131,30 +144,32 @@ string Player::getWeaponClass() const{
     return weapon_class;
 }
 
-string Player::getConsumeEffects() const {
-    string effects;
+vector<string> Player::getConsumeEffects() const {
+    vector<string> effects;
     if(consume_dur > 0) {
-        effects = std::to_string(consume_dur) + " t\n";
         if(consume_str != 0) {
             if(consume_str < 0) {
-                effects += std::to_string(consume_str) + " str\n";
+                effects.push_back(std::to_string(consume_str) + " str");
             } else {
-                effects += "+" + std::to_string(consume_str) + " str\n";
+                effects.push_back("+" + std::to_string(consume_str) + " str");
             }
         } else {
-            effects += "\n";
+            effects.push_back(" ");
         }
+
         if(consume_move != 0) {
             if(consume_move < 0) {
-                effects += std::to_string(consume_move) + " move\n";
+                effects.push_back(std::to_string(consume_move) + " move");
             } else {
-                effects += "+" + std::to_string(consume_move) + " move\n";
+                effects.push_back("+" + std::to_string(consume_move) + " move");
             }
         } else {
-            effects += "\n";
+            effects.push_back(" ");
         }
+        
+        effects.push_back(std::to_string(consume_dur) + " turns left");
     } else {
-        effects = "no current buffs";
+        effects.push_back("NO BUFFS");
     }
     
     return effects;
@@ -162,7 +177,7 @@ string Player::getConsumeEffects() const {
 
 string Player::getInventoryList() {
     if(inventory.empty()) {
-        return "no items in inventory";
+        return "No items in inventory!";
     }
 
     string inv_list;
@@ -172,35 +187,35 @@ string Player::getInventoryList() {
     while(inv_crsr != inventory.end()) {
         inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
         if(inv_crsr->getHeal() != 0)
-            inv_list += "heal: " + inv_crsr->getHeal();
+            inv_list += std::to_string(inv_crsr->getHeal()) + " hp";
         if(inv_crsr->getDur() != 0) {
             if(inv_crsr->getHeal() != 0)
                 inv_list += ", ";
             if(inv_crsr->getStrB() != 0)
-                inv_list += "str: " + std::to_string(inv_crsr->getStrB()) + ", ";
+                inv_list += std::to_string(inv_crsr->getStrB()) + " str, ";
             if(inv_crsr->getMoveB() != 0)
-                inv_list += "move: " + std::to_string(inv_crsr->getMoveB()) + ", ";
+                inv_list += std::to_string(inv_crsr->getMoveB()) + " move, ";
 
-            inv_list += "dur: " + inv_crsr->getDur();
+            inv_list += std::to_string(inv_crsr->getDur()) + " dur";
         }
         inv_list += "\n";
         inv_crsr++;
         num_items++;
     }
 
-    inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
-    if(inv_crsr->getHeal() != 0)
-        inv_list += "heal: " + inv_crsr->getHeal();
-    if(inv_crsr->getDur() != 0) {
-        if(inv_crsr->getHeal() != 0)
-            inv_list += ", ";
-        if(inv_crsr->getStrB() != 0)
-            inv_list += "str: " + std::to_string(inv_crsr->getStrB()) + ", ";
-        if(inv_crsr->getMoveB() != 0)
-            inv_list += "move: " + std::to_string(inv_crsr->getMoveB()) + ", ";
+    // inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
+    // if(inv_crsr->getHeal() != 0)
+    //     inv_list += "heal: " + inv_crsr->getHeal();
+    // if(inv_crsr->getDur() != 0) {
+    //     if(inv_crsr->getHeal() != 0)
+    //         inv_list += ", ";
+    //     if(inv_crsr->getStrB() != 0)
+    //         inv_list += "str: " + std::to_string(inv_crsr->getStrB()) + ", ";
+    //     if(inv_crsr->getMoveB() != 0)
+    //         inv_list += "move: " + std::to_string(inv_crsr->getMoveB()) + ", ";
 
-        inv_list += "dur: " + inv_crsr->getDur();
-    }
+    //     inv_list += "dur: " + inv_crsr->getDur();
+    // }
 
 //inv_list appearance: (these are examples, and not indicative of real items in the game)
 /*
@@ -215,4 +230,11 @@ string Player::getInventoryList() {
 */
 
     return inv_list;
+}
+
+bool Player::isBuffed() const {
+    if(consume_dur == 0) {
+        return false;
+    }
+    return true;
 }

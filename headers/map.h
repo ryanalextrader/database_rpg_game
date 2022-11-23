@@ -40,6 +40,7 @@ class Map{
         void printPlrBlock(int y_pos, int x_pos);
         void printWeaponBlock(string weapon_name, string weapon_class, int atk_range, int atk, int atk_var, float acc, float acc_decay);
         void printStatBuffBlock();
+        void printPotionBuffBlock();
     public:
         Map();
         // Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);

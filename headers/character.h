@@ -64,6 +64,7 @@ public:
     float getAcc() const;
     float getAccRate() const;
     int getMove() const;
+    int getStr() const;
 };
 
 #endif
