@@ -122,7 +122,7 @@ void Map::createNewMap(){
 
     crsr.moveCursor(0, 0, grid.size(), grid[0].size());
 
-    int max_num_monsters = 1;
+    int max_num_monsters = 8;
     int num_monsters = 1 + (rand() % max_num_monsters);
     string monster_name = "MONSTER";
     string description = "Indescribable creature, indescribably ugly";
@@ -165,9 +165,12 @@ void Map::createNewMap(){
     printGrid();
 }
 
+void Map::mainMenu() {
+    //TODO
+}
+
 void Map::generateReward(){
     int reward = rand() % 3;
-    reward = 0;
     if(reward == 0){ // new weapon
         generateWeapon();
     }
@@ -273,7 +276,7 @@ void Map::generateStatBuff(){
             input = true;
         }
         else if(GetAsyncKeyState('2') & 0x8000){
-            plr.levelUp("attack", 2);
+            plr.levelUp("strength", 2);
             input = true;
         }
         else if(GetAsyncKeyState('3') & 0x8000){
@@ -396,6 +399,7 @@ void Map::printPotionBuffBlock(){
 }
 
 Map::Map(){
+    game_over = false;
     level = 0;
     bkgrnd = '+';
     block_width = 20;
@@ -473,11 +477,6 @@ void Map::moveCursor(char dir){
 }
 
 void Map::phaseAct(bool skip){
-    if(plr.getCurHp() == 0) {
-        activity = "YOU DIED! GAME OVER!";
-        return;
-    }
-
     bool new_map_created = false;
     
     if(skip){
@@ -486,6 +485,11 @@ void Map::phaseAct(bool skip){
         }
         else if(phase == 1){
             handleMonsters();
+            if(plr.getCurHp() <= 0) {
+                activity = "YOU DIED! GAME OVER!";
+                printGrid();
+                game_over = true;
+            }
             phase = 0;
         }
     }
@@ -499,6 +503,11 @@ void Map::phaseAct(bool skip){
             printGrid();
             Sleep(1500);
             handleMonsters();
+            if(plr.getCurHp() <= 0){
+                activity = "YOU DIED! GAME OVER!";
+                printGrid();
+                game_over = true;
+            }
             phase = 0;
         }
         //game state
@@ -513,10 +522,10 @@ void Map::phaseAct(bool skip){
             new_map_created = true;
         }
     }
-    if(phase == 0 && !new_map_created){
+    if(phase == 0 && !new_map_created && !game_over){
         activity = "Move when ready.";
     }
-    if(phase == 1){
+    if(phase == 1 && !game_over){
         activity = "Attack with all your might!";
     }
 }
@@ -652,10 +661,6 @@ void Map::inventorySelection(){
     printGrid();
 }
 
-void Map::completeFloor() {
-    //generate a new floor
-}
-
 void Map::gameOver() {
     //uhhh game over screen?
     //restart?
@@ -667,6 +672,10 @@ int Map::getNumRows() const {
 
 int Map::getNumCols() const {
     return grid[0].size();
+}
+
+bool Map::getGameOver() const{
+    return game_over;
 }
 
 void Map::printGrid() {

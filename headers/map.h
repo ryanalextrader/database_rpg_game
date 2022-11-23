@@ -21,6 +21,7 @@ class Map{
         string activity;
         int active_mons_coord[2];
         int level;
+        bool game_over;
 
         Player plr;
         vector<Monster> mnstr;
@@ -31,6 +32,8 @@ class Map{
         void handleOverlap(Monster& mnstr);
         int findMonster(int row_coord, int col_coord) const; //returns the index of the monster at certain coordinates. Returns negative if it finds nothing 
         void createNewMap();
+        void mainMenu();
+
         void generateReward();
         void generateWeapon();
         void generateStatBuff();
@@ -56,11 +59,11 @@ class Map{
 
         void inventorySelection();
 
-        void completeFloor();
         void gameOver();
 
         int getNumRows() const;
         int getNumCols() const;
+        bool getGameOver() const;
 
         void printGrid();
 };

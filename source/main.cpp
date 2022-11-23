@@ -50,9 +50,8 @@ void detectInput(Map& map, bool & received_input_last_check){
 }
 
 void gameLoop(Map& map){
-    bool game_run = true;
     bool last_input_moved = false;
-    while(game_run){
+    while(!map.getGameOver()){
         detectInput(map, last_input_moved);
         Sleep(40);
     }

@@ -32,9 +32,10 @@ bool Player::levelUp(string stat, int amount){
         }
         else if(stat == "max_hp"){
             max_hp += amount;
+            cur_hp += amount;
         }
-        else if(stat == "attack"){
-            atk += amount;
+        else if(stat == "strength"){
+            str += amount;
         }
         else{
             return false;
