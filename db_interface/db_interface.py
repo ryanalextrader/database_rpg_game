@@ -77,7 +77,7 @@ def get_enchant(save_id):
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
     crsr = db.cursor()
-    sql = "SELECT id, e.name, e.atk_mod, e.atk_var_mod, e.acc_mod, e.acc_decay_mod "
+    sql = "SELECT e.id, e.name, e.atk_mod, e.atk_var_mod, e.acc_mod, e.acc_decay_mod "
     sql += "FROM enchant e, save s "
     sql += "WHERE s.id = " + str(save_id) + " AND e.s_floor <= s.level AND e.e_floor >= s.level "
     sql += "ORDER BY Rand() "
@@ -96,11 +96,76 @@ def get_enchant(save_id):
     crsr.close()
     return query
 
+def get_consumable(save_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT * "
+    sql += "FROM consumable "
+    sql += "ORDER BY Rand() "
+    sql += "LIMIT 1"
+
+    res = crsr.execute(sql) #execute the query
+
+    consumable_id = 0
+    for row in crsr:
+        consumable_id = row[0]
+        row_string = ''
+        for att in range(7):
+            if(att != 0):
+                row_string += str(row[att]) + ';'
+        query.append(row_string)
+    
+    inventory_id = add_consumable_to_inventory(save_id, consumable_id)
+    if inventory_id != -1:
+        query[0] += str(inventory_id) + ";"
+        for line in query:
+            print(line)
+    
+    crsr.close()
+    return query
+
+def add_consumable_to_inventory(save_id, consumable_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT count(*) "
+    sql += "FROM inventory "
+    sql += "WHERE save = " + str(save_id) + " "
+    sql += "GROUP BY save"
+
+    res = crsr.execute(sql) #execute the query
+    in_inventory = 0
+    for row in crsr:
+        in_inventory = row[0]
+    
+    inventory_id = -1
+    if in_inventory < 9:
+        sql = "INSERT INTO inventory(save, item) VALUES(" + str(save_id) + "," + str(consumable_id) + ");"
+        res = crsr.execute(sql) #execute the query
+        db.commit()
+
+        sql = "SELECT LAST_INSERT_ID() "
+        sql += "FROM inventory"
+        res = crsr.execute(sql) #execute the query
+
+        for row in crsr:
+            inventory_id = row[0]
+
+    crsr.close()
+    return inventory_id
+
+# def remove_consumable_from_inventory(save_id, consumable_id)
+
 def get_reward(save_id, reward_type):
     print(reward_type)
     if reward_type == 1:
         get_weapon()
         get_enchant(save_id)
+    if reward_type == 2:
+        get_consumable(save_id)
     
 
 def select_new_map(save_id):
@@ -124,8 +189,8 @@ def select_new_map(save_id):
         reward_type = row[4]
 
         row_string = ''
-        for att in range(7):
-            if att != 0 and att != 1 and att != 2 and att != 3:
+        for att in range(8):
+            if att > 4:
                 row_string += str(row[att]) + ';'
         query.append(row_string)
 
