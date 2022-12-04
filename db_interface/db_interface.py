@@ -49,12 +49,66 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     crsr.close()
     return query
 
+def get_weapon():
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT id, name, type, atk, atk_var, `range`, acc, acc_decay "
+    sql += "FROM weapon "
+    sql += "ORDER BY Rand() "
+    sql += "LIMIT 1"
+
+    res = crsr.execute(sql) #execute the query
+    for row in crsr:
+        row_string = ''
+        for att in row:
+            row_string += str(att) + ';'
+        query.append(row_string)
+
+    for line in query:
+        print(line)
+
+    crsr.close()
+    return query
+
+def get_enchant(save_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT id, e.name, e.atk_mod, e.atk_var_mod, e.acc_mod, e.acc_decay_mod "
+    sql += "FROM enchant e, save s "
+    sql += "WHERE s.id = " + str(save_id) + " AND e.s_floor <= s.level AND e.e_floor >= s.level "
+    sql += "ORDER BY Rand() "
+    sql += "LIMIT 1"
+
+    res = crsr.execute(sql) #execute the query
+    for row in crsr:
+        row_string = ''
+        for att in row:
+            row_string += str(att) + ';'
+        query.append(row_string)
+
+    for line in query:
+        print(line)
+
+    crsr.close()
+    return query
+
+def get_reward(save_id, reward_type):
+    print(reward_type)
+    if reward_type == 1:
+        get_weapon()
+        get_enchant(save_id)
+    
+
 def select_new_map(save_id):
     query = []
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
     crsr = db.cursor()
-    sql = "SELECT m.id, m.num_monsters, m.max_mons_types, m.boss_fight, m.length, m.width, reward_type, room_theme "
+    sql = "SELECT m.id, m.num_monsters, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme "
     sql += "FROM map m, save s "
     sql += "WHERE m.start_floor <= s.level and m.end_floor >= s.level and s.id = " + str(save_id) + " "
     sql += "ORDER BY Rand() "
@@ -67,6 +121,7 @@ def select_new_map(save_id):
         num_mons = row[1]
         max_mons_types = row[2]
         boss_fight = row[3]
+        reward_type = row[4]
 
         row_string = ''
         for att in range(7):
@@ -87,6 +142,7 @@ def select_new_map(save_id):
     crsr.close()
 
     get_list_monsters(save_id, num_mons, max_mons_types, boss_fight)
+    get_reward(save_id, reward_type)
 
 
 def read_file_write_db(save_id):
