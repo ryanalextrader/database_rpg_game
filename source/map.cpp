@@ -183,8 +183,86 @@ void Map::createNewMap(){
     printGrid();
 }
 
+Player Map::createPlayer() {
+    fstream data;
+    data.open(DATA_FILE, fstream::in);
+
+    save_id = readNum(data);
+
+    //read player data
+    int max_hp = readNum(data);
+    int cur_hp = readNum(data);
+    int str = readNum(data);
+    int spd = readNum(data);
+
+    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    //read weapon data
+    string wep_name = readEntry(data);
+    string weapon_class = readEntry(data);
+    int wep_atk = readNum(data);
+    int wep_var = readNum(data);
+    int atk_range = readNum(data);
+    float wep_acc = stof(readEntry(data));
+    float wep_decay = stof(readEntry(data));
+
+    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    //read enchant data
+    string ench_name = readEntry(data);
+    float ench_atk = stof(readEntry(data));
+    float ench_var = stof(readEntry(data));
+    float ench_acc = stof(readEntry(data));
+    float ench_decay = stof(readEntry(data));
+
+    data.close();
+
+    //create a weapon out of the weapon and enchant data
+    string weapon_name = ench_name + " " + wep_name;
+    int atk = wep_atk * ench_atk;
+    int atk_var = wep_var * ench_var;
+    float acc = wep_acc * ench_acc;
+    float acc_decay = wep_decay * ench_decay;
+
+    Player temp(0, 0, weapon_name, weapon_class, spd, max_hp, atk_range, atk, atk_var, acc, acc_decay, str);
+    temp.setCurHP(cur_hp);
+
+    return temp;
+}
+
 void Map::mainMenu() {
     //TODO
+}
+
+void Map::unlockList() {
+    fstream data;
+    data.open(DATA_FILE, fstream::in);
+
+    int num_unlocked = readNum(data);
+    vector<int> id_list;
+
+    cout << "Unlocked characters:" << endl;
+    for(int i = 0; i < num_unlocked; i++) {
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        id_list.push_back(readNum(data));
+        cout << '[' << i+1 << "] " << readCharacter(data) << "\n" << endl;
+    }
+
+    data.close();
+
+    int index;
+    bool input = false;
+    while(!input) {
+        Sleep(40);
+        for(int i = 1; i <= num_unlocked; i++) {
+            if(GetAsyncKeyState('0' + i) & 0x8000) {
+                index = i-1;
+                input = true;
+            }
+        }
+    }
+
+    //id_list[index] is the character id we are using
 }
 
 void Map::generateReward(){
@@ -202,13 +280,34 @@ void Map::generateReward(){
 }
 
 void Map:: generateWeapon(){
-    string weapon_name = "Great Axe";
-    string weapon_class = "range";  
-    int atk_range = 1 + (rand() % 5);
-    int atk = 3 + (rand() % 7);
-    int atk_var = 1 + (rand() % atk);
-    float acc = 1.0;
-    float acc_decay = 0.125;
+    fstream data;
+    data.open(DATA_FILE, fstream::in);
+
+    int wep_id = readNum(data);
+    string wep_name = readEntry(data);
+    string weapon_class = readEntry(data);
+    int wep_atk = readNum(data);
+    int wep_var = readNum(data);
+    int atk_range = readNum(data);
+    float wep_acc = stof(readEntry(data));
+    float wep_decay = stof(readEntry(data));
+
+    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    int ench_id = readNum(data);
+    string ench_name = readEntry(data);
+    float ench_atk = stof(readEntry(data));
+    float ench_var = stof(readEntry(data));
+    float ench_acc = stof(readEntry(data));
+    float ench_decay = stof(readEntry(data));
+
+    data.close();
+
+    string weapon_name = ench_name + " " + wep_name;
+    int atk = wep_atk * ench_atk;
+    int atk_var = wep_var * ench_var;
+    float acc = wep_acc * ench_acc;
+    float acc_decay = wep_decay * ench_decay;
 
     printWeaponBlock(weapon_name, weapon_class, atk_range, atk, atk_var, acc, acc_decay);
     cout << "Do you wish to take this weapon and replace your current weapon with it? (Y/N)" << endl;
@@ -219,6 +318,7 @@ void Map:: generateWeapon(){
         if((GetAsyncKeyState('Y') & 0x8000)){
             plr.tradeWeapons(weapon_name, weapon_class, atk, atk_range, atk_var, acc, acc_decay);
             input = true;
+            //update save's weapon_id and enchant_id
         }
         else if((GetAsyncKeyState('N') & 0x8000)){
             input = true;
@@ -230,9 +330,11 @@ void Map::generateItem() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
-    int item_id = readNum(data);
+    int item_id = readNum(data); //hold item id to alter inventory table after inserting item
 
     Consumable item(readConsumable(data));
+
+    data.close();
 
     // string item_name = "Potion";
     // string item_desc = "A mysterious vial of liquid";
@@ -273,6 +375,7 @@ void Map::generateItem() {
                 if(GetAsyncKeyState('0' + i) & 0x8000) {
                     plr.replaceItem(item, i);
                     input = true;
+                    //find and replace the item in inventory table
                 }
             }
             if(GetAsyncKeyState('0') & 0x8000) {
@@ -280,6 +383,7 @@ void Map::generateItem() {
             }
         }
     } else {
+        //add item_id to inventory table
         cout << "Press space to continue.";
         while(!input) {
             Sleep(40);
@@ -389,7 +493,7 @@ void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_rang
     clearScreen();
     setTextColor(15);
     cout << "You found a new weapon!" << endl;
-    cout << "+" << string(2 * block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
+    cout << "+" << string(2 * block_width, '-') << "++" << string(2 * block_width, '-') << "+" << endl;
     cout << "|" << setw(2 * block_width) << "CURRENT WEAPON" << "||" << setw(2 * block_width) << "NEW WEAPON" << "|" << endl;   
     cout << "|" << setw(2 * block_width) << plr.getWeaponName() << "||" << setw(2 * block_width) << weapon_name << "|" << endl;
     cout << "|" << setw(2 * block_width) << plr.getWeaponClass() << "||" << setw(2 * block_width) << weapon_class << "|" << endl;
@@ -492,11 +596,24 @@ Monster Map::readMonster(fstream& data, int rows, int cols) {
 }
 
 Consumable Map::readConsumable(fstream& data) {
-    
+    string name = readEntry(data);
+    string desc = readEntry(data);
+    int heal = readNum(data);
+    int spd = readNum(data);
+    int str = readNum(data);
+    int dur = readNum(data);
+
+    return Consumable(name, desc, heal, str, spd, dur);
 }
 
-string Map::readWeapon(fstream& data) {
-
+string Map::readCharacter(fstream& data) {
+    string character_string = readEntry(data) + ": ";
+    character_string += readEntry(data) + " hp, ";
+    character_string += readEntry(data) + " str, ";
+    character_string += readEntry(data) + " spd. ";
+    character_string += "Starts with a rusty " + readEntry(data);
+    
+    return character_string;
 }
 
 Map::Map(){
@@ -504,7 +621,17 @@ Map::Map(){
     level = 0;
     bkgrnd = '+';
     block_width = 20;
-    plr = Player();
+    fstream data;
+    data.open(DATA_FILE, fstream::out | fstream::binary);
+    data << "1;45;40;5;4;\nlongsword;melee;15;4;1;0.8;0.0;\nnew;0.9;1.0;1.0;1.0" << flush;
+    data.close();
+    plr = createPlayer();
+    data.open(DATA_FILE, fstream::out | fstream::binary);
+    data << "1;20;25;dungeon;3;\n" << 
+            "SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;\n" <<
+            "SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;\n" <<
+            "RAT;An ugly, oversized rodent riddled with disease;3;6;3;1;3;0.9;0.0;n;10;0;1;1;" << flush;
+    data.close();
     createNewMap();
 }
 

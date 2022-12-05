@@ -27,6 +27,7 @@ class Map{
         bool game_over;
 
         int reward_type;
+        int save_id;
 
         Player plr;
         vector<Monster> mnstr;
@@ -37,7 +38,9 @@ class Map{
         void handleOverlap(Monster& mnstr);
         int findMonster(int row_coord, int col_coord) const; //returns the index of the monster at certain coordinates. Returns negative if it finds nothing 
         void createNewMap();
+        Player createPlayer();
         void mainMenu();
+        void unlockList();
 
         void generateReward();
         void generateWeapon();
@@ -57,7 +60,7 @@ class Map{
         string readEntry(fstream& data);
         Monster readMonster(fstream& data, int rows, int cols);
         Consumable readConsumable(fstream& data);
-        string readWeapon(fstream& data);
+        string readCharacter(fstream& data);
 
     public:
         Map();

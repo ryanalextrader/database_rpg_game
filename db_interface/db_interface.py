@@ -2,6 +2,64 @@ import sys
 import random
 import pymysql
 
+
+# load save queries /////////////////////////////////////////////////////////////////////////
+#   load save queries
+def load_save_file(save_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+
+    sql = "SELECT wep_id, enchant_id, id, max_hp, cur_hp, str, spd "
+    sql += "FROM save "
+    sql += "WHERE id = " + str(save_id)
+
+    crsr.execute(sql) #execute query
+
+    row = crsr.fetchone()
+
+    wep_id = row[0]
+    enchant_id = row[1]
+
+    row_string = ''
+    for att in range(7):
+        if att > 1:
+            row_string += str(row[att]) + ';'
+    query.append(row_string)
+
+    sql = "SELECT name, type, atk, atk_var, `range`, acc, acc_decay "
+    sql += "FROM weapon " 
+    sql += "WHERE id = " + str(wep_id)
+
+    crsr.execute(sql)
+
+    row = crsr.fetchone()
+
+    row_string = ''
+    for att in row:
+        row_string += str(att) + ';'
+    query.append(row_string)
+
+    sql = "SELECT name, atk_mod, atk_var_mod, acc_mod, acc_decay_mod "
+    sql += "FROM enchant "
+    sql += "WHERE id = " + str(enchant_id)
+
+    crsr.execute(sql)
+
+    row = crsr.fetchone()
+
+    row_string = ''
+    for att in row:
+        row_string += str(att) + ';'
+    query.append(row_string)
+    
+    for line in query:
+        print(line)
+
+    crsr.close()
+    return query
+
 def get_save_files():
     query = []
     #connect to mysql dbms
@@ -23,12 +81,186 @@ def get_save_files():
     crsr.close()
     return query
 
+    #start new save queries
 def get_character_list():
     query = []
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
     crsr = db.cursor()
-    sql = 
+    sql = "SELECT count(*) "
+    sql += "FROM `character` "
+    sql += "GROUP BY is_unlocked "
+    sql += "HAVING is_unlocked = 1"
+
+    crsr.execute(sql) #execute query
+
+    first_row = crsr.fetchone()
+    query.append(str(first_row[0]) + ";")
+
+    sql = "SELECT c.id, c.name, c.hp, c.str, c.spd, w.name "
+    sql += "FROM `character` c JOIN weapon w ON c.weapon_id = w.id "
+    sql += "WHERE c.is_unlocked"
+
+    crsr.execute(sql) #execute query
+
+    for row in crsr:
+        row_string = ''
+        for att in row:
+            row_string += str(att) + ';'
+        query.append(row_string)
+    
+    for line in query:
+        print(line)
+    
+    crsr.close()
+    return query
+
+def get_character_stats(character_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT name, hp, str, spd, weapon_id "
+    sql += "FROM `character` "
+    sql += "WHERE id = " + str(character_id)
+
+    crsr.execute(sql) #execute query
+
+    row = crsr.fetchone()
+    
+    crsr.close()
+    return row
+
+def start_new_save(character_id):
+    character_stats = get_character_stats(character_id)
+    name = character_stats[0]
+    hp = character_stats[1]
+    strength = character_stats[2]
+    speed = character_stats[3]
+    weapon = character_stats[4]
+    
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "INSERT INTO save(name, max_hp, cur_hp, str, spd, wep_id, enchant_id, level, on_map) "
+    sql += "VALUES('" + str(name) + "'," + str(hp) + "," + str(hp) + "," + str(strength) + "," + str(speed) + "," + str(weapon) + ",1,1,501)"
+    
+    crsr.execute(sql)
+    db.commit()
+
+    crsr.close()
+
+#reward queries /////////////////////////////////////////////////////////////////////////////
+def get_next_unlock_id(save_id):
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT level "
+    sql += "FROM save "
+    sql += "WHERE id = " + str(save_id)
+
+    crsr.execute(sql) #execute the query
+    row = crsr.fetchone()
+    unlock_level = row[0]
+
+    sql = "SELECT id "
+    sql += "FROM `character` "
+    sql += "WHERE unlock_floor = " + str(unlock_level)
+
+    crsr.execute(sql) #execute the query 
+    row = crsr.fetchone()
+
+    crsr.close()
+    return row[0]
+
+def unlock_character(save_id):
+    id = get_next_unlock_id(save_id)
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "UPDATE `character` SET is_unlocked = 1 WHERE (id = " + str(id) + ")"
+    crsr.execute(sql)
+    db.commit()
+
+    crsr.close()
+
+def get_new_weapon():
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT id, name, type, atk, atk_var, `range`, acc, acc_decay "
+    sql += "FROM weapon "
+    sql += "ORDER BY Rand() "
+    sql += "LIMIT 1"
+
+    crsr.execute(sql) #execute the query
+    row = crsr.fetchone()
+    row_string = ''
+    for att in row:
+        row_string += str(att) + ';'
+    query.append(row_string)
+
+    for line in query:
+        print(line)
+
+    crsr.close()
+    return query
+
+def get_new_enchant(save_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT e.id, e.name, e.atk_mod, e.atk_var_mod, e.acc_mod, e.acc_decay_mod "
+    sql += "FROM enchant e, save s "
+    sql += "WHERE s.id = " + str(save_id) + " AND e.s_floor <= s.level AND e.e_floor >= s.level "
+    sql += "ORDER BY Rand() "
+    sql += "LIMIT 1"
+
+    crsr.execute(sql) #execute the query
+    row = crsr.fetchone()
+    row_string = ''
+    for att in row:
+        row_string += str(att) + ';'
+    query.append(row_string)
+
+    for line in query:
+        print(line)
+
+    crsr.close()
+    return query
+
+#update is string like so: "<max_hp>,<cur_hp>,<str>,<spd>"
+def update_save(save_id, update):
+    update_stat_list = update.split(',')
+    max_hp = update_stat_list[0]
+    cur_hp = update_stat_list[1]
+    strength = update_stat_list[2]
+    spd = update_stat_list[3]
+
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+
+    sql = "SELECT level "
+    sql += "FROM save "
+    sql += "WHERE id = " + str(save_id)
+
+    crsr.execute(sql) #execute query
+
+    row = crsr.fetchone()
+
+    level = int(row[0]) + 1
+
+    sql = "UPDATE save SET max_hp = " + str(max_hp) + ", cur_hp = " + str(cur_hp) + ", str = " + str(strength)
+    sql += ", spd = " + str(spd) + ", level = " + str(level) + " WHERE id = " + str(save_id)
+
+    crsr.execute(sql)
+    db.commit()
+
+    crsr.close()
 
 def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     query = []
@@ -77,86 +309,8 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     crsr.close()
     return query
 
-def get_next_unlock_id(save_id):
-    #connect to mysql dbms
-    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
-    crsr = db.cursor()
-    sql = "SELECT level "
-    sql += "FROM save "
-    sql += "WHERE id = " + str(save_id)
-
-    crsr.execute(sql) #execute the query
-    row = crsr.fetchone()
-    unlock_level = row[0]
-
-    sql = "SELECT id "
-    sql += "FROM `character` "
-    sql += "WHERE unlock_floor = " + str(unlock_level)
-
-    crsr.execute(sql) #execute the query 
-    row = crsr.fetchone()
-
-    crsr.close()
-    return row[0]
-
-def unlock_character(save_id):
-    id = get_next_unlock_id(save_id)
-    #connect to mysql dbms
-    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
-    crsr = db.cursor()
-    sql = "UPDATE `character` SET is_unlocked = 1 WHERE (id = " + str(id) + ")"
-    crsr.execute(sql)
-    db.commit()
-
-    crsr.close()
 
 
-def get_weapon():
-    query = []
-    #connect to mysql dbms
-    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
-    crsr = db.cursor()
-    sql = "SELECT id, name, type, atk, atk_var, `range`, acc, acc_decay "
-    sql += "FROM weapon "
-    sql += "ORDER BY Rand() "
-    sql += "LIMIT 1"
-
-    crsr.execute(sql) #execute the query
-    row = crsr.fetchone()
-    row_string = ''
-    for att in row:
-        row_string += str(att) + ';'
-    query.append(row_string)
-
-    for line in query:
-        print(line)
-
-    crsr.close()
-    return query
-
-def get_enchant(save_id):
-    query = []
-    #connect to mysql dbms
-    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
-    crsr = db.cursor()
-    sql = "SELECT e.id, e.name, e.atk_mod, e.atk_var_mod, e.acc_mod, e.acc_decay_mod "
-    sql += "FROM enchant e, save s "
-    sql += "WHERE s.id = " + str(save_id) + " AND e.s_floor <= s.level AND e.e_floor >= s.level "
-    sql += "ORDER BY Rand() "
-    sql += "LIMIT 1"
-
-    crsr.execute(sql) #execute the query
-    row = crsr.fetchone()
-    row_string = ''
-    for att in row:
-        row_string += str(att) + ';'
-    query.append(row_string)
-
-    for line in query:
-        print(line)
-
-    crsr.close()
-    return query
 
 def swap_weapon(save_id, new_weapon_id, new_enchant_id):
     #connect to mysql dbms
@@ -234,7 +388,7 @@ def attempt_add_consumable_to_inventory(save_id, consumable_id):
 
     crsr.close()
 
-def get_consumable(save_id):
+def get_new_consumable(save_id):
     query = []
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
@@ -263,10 +417,10 @@ def get_consumable(save_id):
 
 def get_reward(save_id, reward_type):
     if reward_type == 1:
-        get_weapon()
-        get_enchant(save_id)
+        get_new_weapon()
+        get_new_enchant(save_id)
     elif reward_type == 2:
-        get_consumable(save_id)
+        get_new_consumable(save_id)
     elif reward_type == 4:
         unlock_character(save_id)
     
@@ -325,7 +479,11 @@ if __name__ == '__main__':
     #     open("test_passed.txt", "x")
     # get_consumable(1)
     # get_enchant(1)
-    get_save_files()
+    # get_save_files()
+    # get_character_list()
+    # load_save_file(1)
+    update_save(1, "40,35,5,10")
+    # start_new_save(2)
     # get_possible_maps(1)
     # select_new_map(1)
     # unlock_character(1)

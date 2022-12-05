@@ -54,6 +54,8 @@ public:
     vector<string> getConsumeEffects() const;
     string getInventoryList();
     bool isBuffed() const;
+
+    int setCurHP(int val);
 };
 
 #endif

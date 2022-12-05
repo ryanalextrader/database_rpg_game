@@ -239,3 +239,8 @@ bool Player::isBuffed() const {
     }
     return true;
 }
+
+int Player::setCurHP(int val) {
+    cur_hp = val;
+    return cur_hp;
+}
