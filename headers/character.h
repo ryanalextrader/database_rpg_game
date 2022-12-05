@@ -42,7 +42,7 @@ protected:
     // float setAccDecay(float value);
 public:
     Character();
-    Character(char symbol, int row_coord, int col_coord, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
+    Character(char symbol, int row_coord, int col_coord, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay, int strength);
 
     void setCoords(int row_coord, int col_coord);
     bool canMove(int row_coord, int col_coord) const;

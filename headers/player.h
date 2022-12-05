@@ -27,7 +27,7 @@ private:
 
 public:
     Player();
-    Player(int row_coord, int col_coord, string weapon_n, string weapon_c, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
+    Player(int row_coord, int col_coord, string weapon_n, string weapon_c, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay, int strength);
 
     bool updateCoords(int row_coord, int col_coord);
     bool levelUp(string stat, int amount);

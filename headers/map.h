@@ -11,7 +11,7 @@
 
 using namespace std;
 
-const string DATA_FILE = "..\\data\\runtime_data.txt";
+const string DATA_FILE = ".\\data\\runtime_data.txt";
 
 class Map{
     private:
@@ -25,6 +25,8 @@ class Map{
         int active_mons_coord[2];
         int level;
         bool game_over;
+
+        int reward_type;
 
         Player plr;
         vector<Monster> mnstr;
@@ -41,6 +43,7 @@ class Map{
         void generateWeapon();
         void generateStatBuff();
         void generateItem();
+        void generateCharReward();
 
         void printMonstBlock();
         void printPlrBlock(int y_pos, int x_pos);
@@ -49,12 +52,13 @@ class Map{
         void printPotionBuffBlock();
 
         int getThemeColor();
-        int readTheme(fstream& data);
-        int readWidth(fstream& data);
-        int readHeight(fstream& data);
-        int readNumMonster(fstream& data);
-        int readRewardType(fstream& data);
-        Monster readMonster(fstream& data);
+        string readTheme(fstream& data);
+        int readNum(fstream& data);
+        string readEntry(fstream& data);
+        Monster readMonster(fstream& data, int rows, int cols);
+        Consumable readConsumable(fstream& data);
+        string readWeapon(fstream& data);
+
     public:
         Map();
         // Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);

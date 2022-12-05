@@ -33,7 +33,7 @@ private:
 public:
     Monster();
     //behave values: 0 == random, 1 == approach, 2 == flee
-    Monster(string monst_name, string monst_desc, int col_coord, int row_coord, char symbol, int behaveP, int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
+    Monster(string monst_name, string monst_desc, int col_coord, int row_coord, char symbol, int sight_range, int behaveP, int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
 
     void updateCoords(); //moves monster to dest
     bool canApproach(Player plr) const;

@@ -1,18 +1,18 @@
 #include "..\headers\monster.h"
 
 Monster::Monster() : Monster("MONSTER", "Indescribable creature, indescribably ugly", 
-    0,0,'0',2,1,0, 3, 10, 1, 3, 1, .75, 0.0) {}
+    0,0,'0',6,2,1,0, 3, 10, 1, 3, 1, .75, 0.0) {}
 
-Monster::Monster(string monst_name, string monst_desc, int col_coord, int row_coord, char symbol, int behaveP,
+Monster::Monster(string monst_name, string monst_desc, int col_coord, int row_coord, char symbol, int sight_range, int behaveP,
     int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, 
     float accuracy, float accuracy_decay) : Character(symbol, row_coord, col_coord, spd, max_health, 
-    range, damage, damage_var, accuracy, accuracy_decay) {
+    range, damage, damage_var, accuracy, accuracy_decay, 0) {
     // col = col_coord;
     // row = row_coord;
     // token = symbol;
     // //set sight/move
     // move = 3;
-    sight = 6;
+    sight = sight_range;
     behave[0] = behaveP;
     behave[1] = behaveS;
     behave[2] = behaveD;

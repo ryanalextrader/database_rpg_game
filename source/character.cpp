@@ -1,8 +1,8 @@
 #include "..\headers\character.h"
 
-Character::Character() : Character('x', 0, 0, 3, 10, 1, 5, 2, 1.0, 0.0) {}
+Character::Character() : Character('x', 0, 0, 3, 10, 1, 5, 2, 1.0, 0.0, 0) {}
 
-Character::Character(char symbol, int row_coord, int col_coord, int speed, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay) {
+Character::Character(char symbol, int row_coord, int col_coord, int speed, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay, int strength) {
     token = symbol;
     row = row_coord;
     col = col_coord;
@@ -14,8 +14,7 @@ Character::Character(char symbol, int row_coord, int col_coord, int speed, int m
     atk_var = damage_var;
     acc = accuracy;
     acc_rate = accuracy_decay;
-
-    str = 3;
+    str = strength;
 }
 
 void Character::setCoords(int row_coord, int col_coord) {

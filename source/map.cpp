@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cmath>
+#include <limits>
 #include "..\headers\map.h"
 #include "..\headers\consumable.h"
 #include "..\headers\consInteraction.h"
@@ -99,20 +100,25 @@ void Map::createNewMap(){
     level++;
     // to be replaced with queries at future date
     fstream data;
-    data.open(DATA_FILE, fstream::out);
+    data.open(DATA_FILE, fstream::in);
     // theme = "Fire";
-    // getThemeColor();
     phase = 0;
     active_mons_coord[0] = -1;
     active_mons_coord[1] = -1;
 
-    int rows = readHeight(data);
-    int cols = readWidth(data);
+//map data formatting:
+    //[reward_type];[height];[width];[theme];[num_monsters];
+    reward_type = readNum(data);
+    int rows = readNum(data);
+    int cols = readNum(data);
     theme = readTheme(data);
-    int num_monsters = readNumMonster(data);
+    int num_monsters = readNum(data);
+    getThemeColor();
 
     for(int i = 0; i < num_monsters; i++) {
-        mnstr.push_back(readMonster(data));
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        // from: https://stackoverflow.com/questions/477408/ifstream-end-of-line-and-move-to-next-line
+        mnstr.push_back(readMonster(data, rows, cols));
     }
 
     data.close();
@@ -183,14 +189,14 @@ void Map::mainMenu() {
 
 void Map::generateReward(){
     // int reward = rand() % 3;
-    int reward = 1;
-    if(reward == 0){ // new weapon
+    // int reward = 1;
+    if(reward_type == 1){ // new weapon
         generateWeapon();
     }
-    else if(reward == 1){
+    else if(reward_type == 2){
         generateItem();
     }
-    else{
+    else if (reward_type == 3) {
         generateStatBuff();
     }
 }
@@ -221,29 +227,36 @@ void Map:: generateWeapon(){
 }
 
 void Map::generateItem() {
-    string item_name = "Potion";
-    string item_desc = "A mysterious vial of liquid";
+    fstream data;
+    data.open(DATA_FILE, fstream::in);
+
+    int item_id = readNum(data);
+
+    Consumable item(readConsumable(data));
+
+    // string item_name = "Potion";
+    // string item_desc = "A mysterious vial of liquid";
     
-    //initial values for a potion
-    int healing = rand() % 7;
-    int dur = rand() % 8;
-    int spd_buff = 1 + rand() % 3;
-    int str_buff = 1 + rand() % 5;
+    // //initial values for a potion
+    // int healing = rand() % 7;
+    // int dur = rand() % 8;
+    // int spd_buff = 1 + rand() % 3;
+    // int str_buff = 1 + rand() % 5;
 
-    //ensure that the potion has substantial buffs if no healing
-    if(healing == 0) {
-        dur = 4 + rand() % 4;
-        spd_buff = 1 + (rand() % 3);
-        str_buff = 2 + (rand() % 5);
-    }
-    //ensure that the potion has adequate healing if no buffs
-    if(dur == 0) {
-        spd_buff = 0;
-        str_buff = 0;
-        healing = 5 + (rand() % 15);
-    }
+    // //ensure that the potion has substantial buffs if no healing
+    // if(healing == 0) {
+    //     dur = 4 + rand() % 4;
+    //     spd_buff = 1 + (rand() % 3);
+    //     str_buff = 2 + (rand() % 5);
+    // }
+    // //ensure that the potion has adequate healing if no buffs
+    // if(dur == 0) {
+    //     spd_buff = 0;
+    //     str_buff = 0;
+    //     healing = 5 + (rand() % 15);
+    // }
 
-    Consumable item(item_name, item_desc, healing, str_buff, spd_buff, dur);
+    // Consumable item(item_name, item_desc, healing, str_buff, spd_buff, dur);
 
     clearScreen();
     bool item_state = plr.addItem(item);
@@ -296,6 +309,19 @@ void Map::generateStatBuff(){
             plr.levelUp("speed", 1);
             input = true;
         }
+    }
+}
+
+void Map::generateCharReward() {
+    clearScreen();
+    cout << "New character unlocked!\nThey will be available for you next run.\n\n";
+    
+    bool input = false;
+    cout << "Press space to continue.";
+    while(!input) {
+        Sleep(40);
+        if(GetAsyncKeyState(' ') & 0x8000)
+            input = true;
     }
 }
 
@@ -363,21 +389,21 @@ void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_rang
     clearScreen();
     setTextColor(15);
     cout << "You found a new weapon!" << endl;
-    cout << "+" << string(block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
-    cout << "|" << setw(block_width) << "CURRENT WEAPON" << "||" << setw(block_width) << "NEW WEAPON" << "|" << endl;   
-    cout << "|" << setw(block_width) << plr.getWeaponName() << "||" << setw(block_width) << weapon_name << "|" << endl;
-    cout << "|" << setw(block_width) << plr.getWeaponClass() << "||" << setw(block_width) << weapon_class << "|" << endl;
+    cout << "+" << string(2 * block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
+    cout << "|" << setw(2 * block_width) << "CURRENT WEAPON" << "||" << setw(2 * block_width) << "NEW WEAPON" << "|" << endl;   
+    cout << "|" << setw(2 * block_width) << plr.getWeaponName() << "||" << setw(2 * block_width) << weapon_name << "|" << endl;
+    cout << "|" << setw(2 * block_width) << plr.getWeaponClass() << "||" << setw(2 * block_width) << weapon_class << "|" << endl;
     string attack = "Attack: " + to_string(plr.getAtk());
-    cout << "|" << setw(block_width) << attack << "||" << setw(block_width) << "Attack: " + to_string(atk) << "|" << endl;
+    cout << "|" << setw(2 * block_width) << attack << "||" << setw(2 * block_width) << "Attack: " + to_string(atk) << "|" << endl;
     string range = "Range: " + to_string(plr.getAtkRange());
-    cout << "|" << setw(block_width) << range << "||" << setw(block_width) << "Range: " + to_string(atk_range) << "|" << endl;
+    cout << "|" << setw(2 * block_width) << range << "||" << setw(2 * block_width) << "Range: " + to_string(atk_range) << "|" << endl;
     string attack_var = "Attack Var: " + to_string(plr.getAtkVar());
-    cout << "|" << setw(block_width) << attack_var << "||" << setw(block_width) << "Attack Var: " + to_string(atk_var) << "|" << endl;
+    cout << "|" << setw(2 * block_width) << attack_var << "||" << setw(2 * block_width) << "Attack Var: " + to_string(atk_var) << "|" << endl;
     string accuracy = "Accuracy: " + to_string(plr.getAcc()).substr(0, 4); // substr for rounding to two decimal places
-    cout << "|" << setw(block_width) << accuracy << "||" << setw(block_width) << "Accuracy: " + to_string(acc).substr(0,4) << "|" << endl;
+    cout << "|" << setw(2 * block_width) << accuracy << "||" << setw(2 * block_width) << "Accuracy: " + to_string(acc).substr(0,4) << "|" << endl;
     string accuracy_decay = "Decay: " + to_string(plr.getAccRate()).substr(0, 4); // substr for rounding to two decimal places
-    cout << "|" << setw(block_width) << accuracy_decay << "||" << setw(block_width) << "Decay: " + to_string(acc_decay).substr(0,4) << "|" << endl;
-    cout << "+" << string(block_width, '-') << "++" << string(block_width, '-') << "+" << endl;
+    cout << "|" << setw(2 * block_width) << accuracy_decay << "||" << setw(2 * block_width) << "Decay: " + to_string(acc_decay).substr(0,4) << "|" << endl;
+    cout << "+" << string(2 * block_width, '-') << "++" << string(2 * block_width, '-') << "+" << endl;
 }
 
 void Map::printStatBuffBlock(){
@@ -420,21 +446,56 @@ int Map::getThemeColor() {
         wall_color = 4;
     else
         wall_color = 5;
+
+    return wall_color;
 }
 
-int Map::readTheme(fstream& data) {
-
+string Map::readTheme(fstream& data) {
+    theme = readEntry(data);
+    return theme;
 }
-int Map::readWidth(fstream& data) {
 
+int Map::readNum(fstream& data) {
+    return stoi(readEntry(data));
 }
-int Map::readHeight(fstream& data) {
 
+string Map::readEntry(fstream& data) {
+    string temp;
+    getline(data, temp, ';');
+    return temp;
 }
-int Map::readRewardType(fstream& data) {
 
+Monster Map::readMonster(fstream& data, int rows, int cols) {
+    string name = readEntry(data);
+    string desc = readEntry(data);
+    int sight = readNum(data);
+    int atk = readNum(data);
+    int atk_var = readNum(data);
+    int atk_range = readNum(data);
+    int move = readNum(data);
+    float acc = stof(readEntry(data));
+    float acc_decay = stof(readEntry(data));
+    char token = readEntry(data)[0];
+    int hp = readNum(data);
+    int d_beh = readNum(data);
+    int s_beh = readNum(data);
+    int p_beh = readNum(data);
+
+    return Monster(name, desc, rand() % cols, rand() % rows, token, sight, p_beh, s_beh, d_beh, move, hp, atk_range, atk, atk_var, acc, acc_decay);
+//file
+    //name;description;sight_range;atk_strength;atk_var;atk_range;move;acc;acc_decay;symbol;max_hp;default_beh;blind_beh;provoked_beh;
+
+//constructor
+    //name, desc, rand() % cols, rand() % rows, 
+    //     symbol, sight, behaveP, behaveS, behaveD, spd, max_health, range, damage, damage_var, 
+    //     accuracy, accuracy_decay
 }
-Monster Map::readMonster(fstream& data) {
+
+Consumable Map::readConsumable(fstream& data) {
+    
+}
+
+string Map::readWeapon(fstream& data) {
 
 }
 
