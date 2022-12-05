@@ -3,12 +3,15 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 #include ".\player.h"
 #include ".\monster.h"
 #include ".\cursor.h"
 #include ".\consumable.h"
 
 using namespace std;
+
+const string DATA_FILE = "..\\data\\runtime_data.txt";
 
 class Map{
     private:
@@ -44,6 +47,14 @@ class Map{
         void printWeaponBlock(string weapon_name, string weapon_class, int atk_range, int atk, int atk_var, float acc, float acc_decay);
         void printStatBuffBlock();
         void printPotionBuffBlock();
+
+        int getThemeColor();
+        int readTheme(fstream& data);
+        int readWidth(fstream& data);
+        int readHeight(fstream& data);
+        int readNumMonster(fstream& data);
+        int readRewardType(fstream& data);
+        Monster readMonster(fstream& data);
     public:
         Map();
         // Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr);

@@ -12,7 +12,7 @@ using std::string;
 using std::sqrt;
 using std::vector;
 
-const int inventory_cap = 9;
+const int INVENTORY_CAP = 9;
 
 class Player : public Character{
 private:

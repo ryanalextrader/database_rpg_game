@@ -98,18 +98,30 @@ void Map::createNewMap(){
 
     level++;
     // to be replaced with queries at future date
-    theme = "Fire";
-    wall_color = rand() % 16;
+    fstream data;
+    data.open(DATA_FILE, fstream::out);
+    // theme = "Fire";
+    // getThemeColor();
     phase = 0;
     active_mons_coord[0] = -1;
     active_mons_coord[1] = -1;
 
+    int rows = readHeight(data);
+    int cols = readWidth(data);
+    theme = readTheme(data);
+    int num_monsters = readNumMonster(data);
 
-    int min_rows_and_cols = 10;
-    int range = 10;
+    for(int i = 0; i < num_monsters; i++) {
+        mnstr.push_back(readMonster(data));
+    }
 
-    int rows = min_rows_and_cols + (rand() % range);
-    int cols = min_rows_and_cols + (rand() % range);
+    data.close();
+
+    // int min_rows_and_cols = 10;
+    // int range = 10;
+
+    // int rows = min_rows_and_cols + (rand() % range);
+    // int cols = min_rows_and_cols + (rand() % range);
 
     plr.setCoords(rand() % rows, rand() % cols);
 
@@ -122,27 +134,27 @@ void Map::createNewMap(){
 
     crsr.moveCursor(0, 0, grid.size(), grid[0].size());
 
-    int max_num_monsters = 8;
-    int num_monsters = 1 + (rand() % max_num_monsters);
-    string monster_name = "MONSTER";
-    string description = "Indescribable creature, indescribably ugly";
-    char symbol = '0';
-    int behaveP = 2;
-    int behaveS = 1;
-    int behaveD = 0;
-    int spd = 3;
-    int max_health = 20;
-    int mons_range = 1;
-    int damage = 3;
-    int damage_var = 1;
-    float accuracy = 0.75;
-    float accuracy_decay = 0.0;
+    // int max_num_monsters = 1;
+    // int num_monsters = 1 + (rand() % max_num_monsters);
+    // string monster_name = "MONSTER";
+    // string description = "Indescribable creature, indescribably ugly";
+    // char symbol = '0';
+    // int behaveP = 2;
+    // int behaveS = 1;
+    // int behaveD = 0;
+    // int spd = 3;
+    // int max_health = 20;
+    // int mons_range = 1;
+    // int damage = 3;
+    // int damage_var = 1;
+    // float accuracy = 0.75;
+    // float accuracy_decay = 0.0;
     
-    for(int i = 0; i < num_monsters; i++){
-        mnstr.push_back(Monster(monster_name, description, rand() % cols, rand() % rows, 
-        symbol, behaveP, behaveS, behaveD, spd, max_health, mons_range, damage, damage_var, 
-        accuracy, accuracy_decay));
-    }
+    // for(int i = 0; i < num_monsters; i++){
+    //     mnstr.push_back(Monster(monster_name, description, rand() % cols, rand() % rows, 
+    //     symbol, behaveP, behaveS, behaveD, spd, max_health, mons_range, damage, damage_var, 
+    //     accuracy, accuracy_decay));
+    // }
 
     //make sure no monsters overlap with any other monsters or the player
     bool overlap = true;
@@ -170,7 +182,8 @@ void Map::mainMenu() {
 }
 
 void Map::generateReward(){
-    int reward = rand() % 3;
+    // int reward = rand() % 3;
+    int reward = 1;
     if(reward == 0){ // new weapon
         generateWeapon();
     }
@@ -396,6 +409,33 @@ void Map::printPotionBuffBlock(){
         }
     }
     cout << "+" << string(block_width, '-') << "+" << endl;
+}
+
+int Map::getThemeColor() {
+    if(theme == "dungeon")
+        wall_color = 8;
+    else if(theme == "forest")
+        wall_color = 2;
+    else if(theme == "cave")
+        wall_color = 4;
+    else
+        wall_color = 5;
+}
+
+int Map::readTheme(fstream& data) {
+
+}
+int Map::readWidth(fstream& data) {
+
+}
+int Map::readHeight(fstream& data) {
+
+}
+int Map::readRewardType(fstream& data) {
+
+}
+Monster Map::readMonster(fstream& data) {
+
 }
 
 Map::Map(){

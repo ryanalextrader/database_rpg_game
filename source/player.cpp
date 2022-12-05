@@ -14,6 +14,10 @@ Player::Player(int row_coord, int col_coord, string weapon_n, string weapon_c,
     consume_dur = 0;
     consume_move = 0;
     consume_str = 0;
+
+    for(int i = 0; i < 9; i++){
+        inventory.push_back(Consumable());
+    }
 }
 
 bool Player::updateCoords(int row_coord, int col_coord) {
@@ -96,7 +100,7 @@ int Player::consumeTimer() {
 }
 
 bool Player::addItem(Consumable item) {
-    if(inventory.size() < inventory_cap) {
+    if(inventory.size() < INVENTORY_CAP) {
         inventory.push_back(item);
         return true;
     }

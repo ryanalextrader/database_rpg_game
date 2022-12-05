@@ -49,6 +49,9 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     crsr.close()
     return query
 
+def unlock_character(save_id):
+
+
 def get_weapon():
     query = []
     #connect to mysql dbms
@@ -96,6 +99,82 @@ def get_enchant(save_id):
     crsr.close()
     return query
 
+def swap_weapon(save_id, new_weapon_id, new_enchant_id):
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "UPDATE save SET wep_id = " + str(new_weapon_id) + ", enchant_id = " + str(new_enchant_id) + " WHERE (id = " + str(save_id) + ")" 
+    res = crsr.execute(sql) #execute the query
+    db.commit()
+
+    crsr.close()
+
+def get_inventory_id(save_id, consumable_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT id "
+    sql += "FROM inventory "
+    sql += "WHERE save = " + str(save_id) + " AND item = " + str(consumable_id) + " "
+    sql += "LIMIT 1"
+
+    res = crsr.execute(sql) #execute the query
+    id = -1
+    for row in crsr:
+        id = row[0]
+    
+    crsr.close()
+    return id
+
+def use_consumable(save_id, consumable_id):
+    id = get_inventory_id(save_id, consumable_id)
+    if id != -1:
+        #connect to mysql dbms
+        db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+        crsr = db.cursor()
+        sql = "DELETE FROM inventory WHERE (id = " + str(id) + ")"
+        res = crsr.execute(sql) #execute the query
+        db.commit()
+
+        crsr.close()
+
+
+def swap_consumables(save_id, deletion_consumable_id, new_consumable_id):
+    id = get_inventory_id(save_id, deletion_consumable_id)
+    if id != -1:
+        #connect to mysql dbms
+        db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+        crsr = db.cursor()
+        sql = "UPDATE inventory SET item = " + str(new_consumable_id) + " WHERE (id = " + str(id) + ")" 
+        res = crsr.execute(sql) #execute the query
+        db.commit()
+
+        crsr.close()
+    
+
+def attempt_add_consumable_to_inventory(save_id, consumable_id):
+    query = []
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+    sql = "SELECT count(*) "
+    sql += "FROM inventory "
+    sql += "WHERE save = " + str(save_id) + " "
+    sql += "GROUP BY save"
+
+    res = crsr.execute(sql) #execute the query
+    in_inventory = 0
+    for row in crsr:
+        in_inventory = row[0]
+    
+    if in_inventory < 9:
+        sql = "INSERT INTO inventory(save, item) VALUES(" + str(save_id) + "," + str(consumable_id) + ");"
+        res = crsr.execute(sql) #execute the query
+        db.commit()
+
+    crsr.close()
+
 def get_consumable(save_id):
     query = []
     #connect to mysql dbms
@@ -112,60 +191,28 @@ def get_consumable(save_id):
     for row in crsr:
         consumable_id = row[0]
         row_string = ''
-        for att in range(7):
-            if(att != 0):
-                row_string += str(row[att]) + ';'
+        for att in row:
+            row_string += str(att) + ';'
         query.append(row_string)
     
-    inventory_id = add_consumable_to_inventory(save_id, consumable_id)
-    if inventory_id != -1:
-        query[0] += str(inventory_id) + ";"
-        for line in query:
-            print(line)
+    attempt_add_consumable_to_inventory(save_id, consumable_id)
+    for line in query:
+        print(line)
     
     crsr.close()
     return query
 
-def add_consumable_to_inventory(save_id, consumable_id):
-    query = []
-    #connect to mysql dbms
-    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
-    crsr = db.cursor()
-    sql = "SELECT count(*) "
-    sql += "FROM inventory "
-    sql += "WHERE save = " + str(save_id) + " "
-    sql += "GROUP BY save"
-
-    res = crsr.execute(sql) #execute the query
-    in_inventory = 0
-    for row in crsr:
-        in_inventory = row[0]
-    
-    inventory_id = -1
-    if in_inventory < 9:
-        sql = "INSERT INTO inventory(save, item) VALUES(" + str(save_id) + "," + str(consumable_id) + ");"
-        res = crsr.execute(sql) #execute the query
-        db.commit()
-
-        sql = "SELECT LAST_INSERT_ID() "
-        sql += "FROM inventory"
-        res = crsr.execute(sql) #execute the query
-
-        for row in crsr:
-            inventory_id = row[0]
-
-    crsr.close()
-    return inventory_id
 
 # def remove_consumable_from_inventory(save_id, consumable_id)
 
 def get_reward(save_id, reward_type):
-    print(reward_type)
     if reward_type == 1:
         get_weapon()
         get_enchant(save_id)
-    if reward_type == 2:
+    elif reward_type == 2:
         get_consumable(save_id)
+    elif reward_type == 4:
+        unlock_character(save_id)
     
 
 def select_new_map(save_id):
@@ -173,7 +220,7 @@ def select_new_map(save_id):
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
     crsr = db.cursor()
-    sql = "SELECT m.id, m.num_monsters, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme "
+    sql = "SELECT m.id, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme, m.num_monsters "
     sql += "FROM map m, save s "
     sql += "WHERE m.start_floor <= s.level and m.end_floor >= s.level and s.id = " + str(save_id) + " "
     sql += "ORDER BY Rand() "
@@ -183,14 +230,14 @@ def select_new_map(save_id):
 
     for row in crsr:
         id = row[0]
-        num_mons = row[1]
-        max_mons_types = row[2]
-        boss_fight = row[3]
-        reward_type = row[4]
+        num_mons = row[7]
+        max_mons_types = row[1]
+        boss_fight = row[2]
+        reward_type = row[3]
 
         row_string = ''
         for att in range(8):
-            if att > 4:
+            if att > 2:
                 row_string += str(row[att]) + ';'
         query.append(row_string)
 
@@ -220,7 +267,10 @@ if __name__ == '__main__':
     # if int(sys.argv[1]) == 1:
     #     open("test_passed.txt", "x")
     # get_possible_maps(1)
-    select_new_map(1)
+    # select_new_map(1)
+    # swap_consumables(1, 7, 8)
+    # use_consumable(1, 1)
+    # swap_weapon(1, 1, 2)
     # if(int(sys.argv[1])):
     #     read_file_write_db(int(sys.argv[2]))
     # else:
