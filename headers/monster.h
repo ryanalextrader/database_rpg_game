@@ -36,13 +36,13 @@ public:
     Monster(string monst_name, string monst_desc, int col_coord, int row_coord, char symbol, int sight_range, int behaveP, int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay);
 
     void updateCoords(); //moves monster to dest
-    bool canApproach(Player plr) const;
-    bool canSee(Player plr);
-    bool isProvoked();
+    bool canApproach(Player plr) const; //whether or not the player is within move range of the monster
+    bool canSee(Player plr); //whether or not the player is within the sight range of the monster
+    bool isProvoked(); //whether or not the monster has taken damage
 
-    int checkBehavior();
+    int checkBehavior(); //checks the 2 behavior (spotted, provoked) flags to set b_index
 
-    void setDest(Player plr, int max_cols, int max_rows);
+    void setDest(Player plr, int max_cols, int max_rows); //calls a move script based on the current behavior
 
     //0 == random, 1 == approach player, 2 == flee player
     int getCurBehavior() const;

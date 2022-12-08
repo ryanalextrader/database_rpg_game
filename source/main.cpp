@@ -64,5 +64,5 @@ int main(){
     clearScreen();
     game.printGrid();
     gameLoop(game);
-    system("python .\\db_interface\\db_interface.py 1");
+    // system("python .\\db_interface\\db_interface.py 1");
 }

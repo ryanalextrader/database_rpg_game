@@ -1,4 +1,5 @@
-1;20;25;dungeon;3;
-SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;
-SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;
-RAT;An ugly, oversized rodent riddled with disease;3;6;3;1;3;0.9;0.0;n;10;0;1;1;
+4;
+1;WARRIOR;40;35;5;10;1;2;6;15;
+2;WARRIOR;45;40;5;4;2;3;2;1;
+3;WARRIOR;45;45;6;4;1;1;1;501;
+4;RANGER;40;40;4;5;12;1;1;501;

@@ -7,11 +7,6 @@ Monster::Monster(string monst_name, string monst_desc, int col_coord, int row_co
     int behaveS, int behaveD, int spd, int max_health, int range, int damage, int damage_var, 
     float accuracy, float accuracy_decay) : Character(symbol, row_coord, col_coord, spd, max_health, 
     range, damage, damage_var, accuracy, accuracy_decay, 0) {
-    // col = col_coord;
-    // row = row_coord;
-    // token = symbol;
-    // //set sight/move
-    // move = 3;
     sight = sight_range;
     behave[0] = behaveP;
     behave[1] = behaveS;
@@ -31,14 +26,14 @@ void Monster::updateCoords() {
 }
 
 bool Monster::canApproach(Player plr) const {
-    if(getDistS(plr.getCol(), plr.getRow()) <= (move+1)*(move+1)) {
+    if(getDistS(plr.getCol(), plr.getRow()) <= (move+1)*(move+1)) { //distance formula
         return true;
     }
     return false;
 }
 
 bool Monster::canSee(Player plr) {
-    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight) {
+    if(getDistS(plr.getCol(), plr.getRow()) <= sight*sight) { //distance formula
         spotted = true;
     }
 
@@ -54,6 +49,7 @@ bool Monster::isProvoked() {
 }
 
 int Monster::checkBehavior() {
+    //behavior priority: provoked -> spotted -> default
     if(provoked) {
         b_index = 0;
     } else if(spotted) {
@@ -74,11 +70,11 @@ void Monster::setDest(Player plr, int max_cols, int max_rows) {
     //check behavior
     checkBehavior();
 
-    //random
+    //random movement
     if(behave[b_index] == 0) {
         randMove(plr, max_cols, max_rows);
     }
-    //approach
+    //approach the player
     if(behave[b_index] == 1) {
         //can move to player:
         if(canApproach(plr)) {
@@ -89,7 +85,7 @@ void Monster::setDest(Player plr, int max_cols, int max_rows) {
             chaseMove(plr, max_cols, max_rows);
         }
     }
-    //flee
+    //flee the player
     if(behave[b_index] == 2) {
         fleeMove(plr, max_cols, max_rows);
     }
@@ -98,6 +94,7 @@ void Monster::setDest(Player plr, int max_cols, int max_rows) {
 void Monster::adjMove(Player plr, int max_cols, int max_rows) {
     dest[0] = plr.getCol();
     dest[1] = plr.getRow();
+    //see which side of the player is closest to the monster, and move there
     if(getDistS(dest[0], dest[1]) > getDistS(plr.getCol() - 1, plr.getRow()) && plr.getCol() - 1 >= 0) {
         dest[0] = plr.getCol() - 1;
         dest[1] = plr.getRow();
@@ -117,8 +114,10 @@ void Monster::adjMove(Player plr, int max_cols, int max_rows) {
 }
 
 void Monster::chaseMove(Player plr, int max_cols, int max_rows) {
-    int min_dist_s;
-    int new_dist_s;
+    //takes `move` steps, with each step getting closer to the player
+    int min_dist_s; //the tile adjacent to the monster that is closest to the player
+    int new_dist_s; //checks adjacent tiles to find the least distance
+    //the destination of the current 'step'
     int cur_col;
     int cur_row;
     dest[0] = col;
@@ -126,8 +125,12 @@ void Monster::chaseMove(Player plr, int max_cols, int max_rows) {
     for(int i = 0; i < move; i++) {
         cur_col = dest[0];
         cur_row = dest[1];
+        //systematically check: no step, step left, step up, step right, step down
+        
+        //no step
         min_dist_s = distanceS(cur_col, cur_row, plr.getCol(), plr.getRow());
-        if(cur_col - 1 >= 0) {
+        
+        if(cur_col - 1 >= 0) { //left
             new_dist_s = distanceS(cur_col - 1, cur_row, plr.getCol(), plr.getRow());
             if(min_dist_s > new_dist_s) {
                 min_dist_s = new_dist_s;
@@ -135,7 +138,7 @@ void Monster::chaseMove(Player plr, int max_cols, int max_rows) {
                 dest[1] = cur_row;
             }
         }
-        if(cur_row - 1 >= 0) {
+        if(cur_row - 1 >= 0) { //up
             new_dist_s = distanceS(cur_col, cur_row - 1, plr.getCol(), plr.getRow());
             if(min_dist_s > new_dist_s){
                 min_dist_s = new_dist_s;
@@ -143,7 +146,7 @@ void Monster::chaseMove(Player plr, int max_cols, int max_rows) {
                 dest[1] = cur_row - 1;
             }
         }
-        if(cur_col + 1 < max_cols) {
+        if(cur_col + 1 < max_cols) { //right
             new_dist_s = distanceS(cur_col + 1, cur_row, plr.getCol(), plr.getRow());
             if(min_dist_s > new_dist_s) {
                 min_dist_s = new_dist_s;
@@ -151,7 +154,7 @@ void Monster::chaseMove(Player plr, int max_cols, int max_rows) {
                 dest[1] = cur_row;
             }
         }
-        if(cur_row + 1 < max_rows) {
+        if(cur_row + 1 < max_rows) { //down
             new_dist_s = distanceS(cur_col, cur_row + 1, plr.getCol(), plr.getRow());
             if(min_dist_s > new_dist_s) {
                 dest[0] = cur_col;

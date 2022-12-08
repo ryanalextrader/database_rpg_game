@@ -41,6 +41,8 @@ class Map{
         Player createPlayer();
         void mainMenu();
         void unlockList();
+        
+        bool saveList();
 
         void generateReward();
         void generateWeapon();
@@ -61,6 +63,7 @@ class Map{
         Monster readMonster(fstream& data, int rows, int cols);
         Consumable readConsumable(fstream& data);
         string readCharacter(fstream& data);
+        string readSave(fstream& data);
 
     public:
         Map();

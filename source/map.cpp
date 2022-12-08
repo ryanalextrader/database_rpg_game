@@ -231,10 +231,18 @@ Player Map::createPlayer() {
 }
 
 void Map::mainMenu() {
-    //TODO
+    bool loaded_file = false;
+    while(!loaded_file) {
+        system("python db_interface\\db_interface.py 1");
+        loaded_file = saveList();
+    }
+
+    // createPlayer();
+    // createNewMap();
 }
 
 void Map::unlockList() {
+    clearScreen();
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
@@ -263,6 +271,59 @@ void Map::unlockList() {
     }
 
     //id_list[index] is the character id we are using
+    system(("python db_interface\\db_interface.py 3 " + to_string(id_list[index])).c_str());
+}
+
+bool Map::saveList() {
+    clearScreen();
+    fstream data;
+    data.open(DATA_FILE, fstream::in);
+
+    int num_saves = readNum(data);
+    vector<int> id_list;
+    vector<int> level_list;
+
+    cout << "Save files:" << endl;
+    for(int i = 0; i < 9; i++) {
+        //run til eof
+        if(i < num_saves) {
+            data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            //id, name, max_hp, cur_hp, str, spd
+            id_list.push_back(readNum(data));
+            cout << "[" << i+1 << "] " << readSave(data) << '\n' << endl;
+            readEntry(data);
+            readEntry(data); //burn wep_id and enchant_id so we can get to level
+            level_list.push_back(readNum(data));
+        } else {
+            cout << '[' << i+1 << "] NEW FILE" << '\n' << endl;
+        }
+    }
+
+    data.close();
+
+    //player selects save file
+    int index;
+    bool input = false;
+    while(!input) {
+        Sleep(40);
+        for(int i = 1; i <= 9; i++) {
+            if(GetAsyncKeyState('0' + i) & 0x8000) {
+                index = i-1;
+                input = true;
+            }
+        }
+    }
+
+    if(index < num_saves) {
+        save_id = id_list[index];
+        level = level_list[index];
+        return true;
+    } else {
+        //create new game
+        system("python db_interface\\db_interface.py 2");
+        unlockList();
+        return false;
+    }
 }
 
 void Map::generateReward(){
@@ -616,23 +677,36 @@ string Map::readCharacter(fstream& data) {
     return character_string;
 }
 
+string Map::readSave(fstream& data) {
+    string save_string = readEntry(data) + ": ";
+    //name, max_hp, cur_hp, str, spd
+    string max_hp = readEntry(data);
+    save_string += readEntry(data) + '/' + max_hp + " hp, ";
+    save_string += readEntry(data) + " str, ";
+    save_string += readEntry(data) + " spd";
+
+    return save_string;
+}
+
 Map::Map(){
     game_over = false;
     level = 0;
     bkgrnd = '+';
     block_width = 20;
-    fstream data;
-    data.open(DATA_FILE, fstream::out | fstream::binary);
-    data << "1;45;40;5;4;\nlongsword;melee;15;4;1;0.8;0.0;\nnew;0.9;1.0;1.0;1.0" << flush;
-    data.close();
-    plr = createPlayer();
-    data.open(DATA_FILE, fstream::out | fstream::binary);
-    data << "1;20;25;dungeon;3;\n" << 
-            "SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;\n" <<
-            "SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;\n" <<
-            "RAT;An ugly, oversized rodent riddled with disease;3;6;3;1;3;0.9;0.0;n;10;0;1;1;" << flush;
-    data.close();
-    createNewMap();
+    // fstream data;
+    // data.open(DATA_FILE, fstream::out | fstream::binary);
+    // data << "1;45;40;5;4;\nlongsword;melee;15;4;1;0.8;0.0;\nnew;0.9;1.0;1.0;1.0" << flush;
+    // data.close();
+    // plr = createPlayer();
+    // data.open(DATA_FILE, fstream::out | fstream::binary);
+    // data << "1;20;25;dungeon;3;\n" << 
+    //         "SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;\n" <<
+    //         "SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;\n" <<
+    //         "RAT;An ugly, oversized rodent riddled with disease;3;6;3;1;3;0.9;0.0;n;10;0;1;1;" << flush;
+    // data.close();
+    // createNewMap();
+
+    mainMenu();
 }
 
 // Map::Map() : Map(12, 12, '+', 7, "Fire", 12) {}
