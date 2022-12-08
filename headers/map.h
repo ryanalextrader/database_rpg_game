@@ -38,11 +38,13 @@ class Map{
         void handleOverlap(Monster& mnstr);
         int findMonster(int row_coord, int col_coord) const; //returns the index of the monster at certain coordinates. Returns negative if it finds nothing 
         void createNewMap();
-        Player createPlayer();
+        void createPlayer();
+        void createInventory(fstream& data);
         void mainMenu();
         void unlockList();
         
         bool saveList();
+        void deleteSave();
 
         void generateReward();
         void generateWeapon();

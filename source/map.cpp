@@ -183,7 +183,7 @@ void Map::createNewMap(){
     printGrid();
 }
 
-Player Map::createPlayer() {
+void Map::createPlayer() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
@@ -215,7 +215,6 @@ Player Map::createPlayer() {
     float ench_acc = stof(readEntry(data));
     float ench_decay = stof(readEntry(data));
 
-    data.close();
 
     //create a weapon out of the weapon and enchant data
     string weapon_name = ench_name + " " + wep_name;
@@ -224,21 +223,36 @@ Player Map::createPlayer() {
     float acc = wep_acc * ench_acc;
     float acc_decay = wep_decay * ench_decay;
 
-    Player temp(0, 0, weapon_name, weapon_class, spd, max_hp, atk_range, atk, atk_var, acc, acc_decay, str);
-    temp.setCurHP(cur_hp);
+    plr = Player(0, 0, weapon_name, weapon_class, spd, max_hp, atk_range, atk, atk_var, acc, acc_decay, str);
+    plr.setCurHP(cur_hp);
 
-    return temp;
+    createInventory(data);
+
+    data.close();
+}
+
+void Map::createInventory(fstream& data) {
+    int num_items = readNum(data);
+    for(int i = 0; i < num_items; i++) {
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        plr.addItem(readConsumable(data));
+    }
 }
 
 void Map::mainMenu() {
+    //title screen? tutorial screen?
+
     bool loaded_file = false;
     while(!loaded_file) {
-        system("python db_interface\\db_interface.py 1");
+        system("python db_interface\\db_interface.py 1"); //list of save files from db
         loaded_file = saveList();
     }
 
-    // createPlayer();
-    // createNewMap();
+    system(("python db_interface\\db_interface.py 5 " + to_string(save_id)).c_str()); //retrieve the save file to be used
+    createPlayer();
+
+    system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 1").c_str()); //retrieve the map data from the save
+    createNewMap();
 }
 
 void Map::unlockList() {
@@ -271,7 +285,7 @@ void Map::unlockList() {
     }
 
     //id_list[index] is the character id we are using
-    system(("python db_interface\\db_interface.py 3 " + to_string(id_list[index])).c_str());
+    system(("python db_interface\\db_interface.py 3 " + to_string(id_list[index])).c_str()); //create a new save file using the selected character as a template
 }
 
 bool Map::saveList() {
@@ -298,6 +312,7 @@ bool Map::saveList() {
             cout << '[' << i+1 << "] NEW FILE" << '\n' << endl;
         }
     }
+    cout << "[0] DELETE A SAVE";
 
     data.close();
 
@@ -307,10 +322,14 @@ bool Map::saveList() {
     while(!input) {
         Sleep(40);
         for(int i = 1; i <= 9; i++) {
-            if(GetAsyncKeyState('0' + i) & 0x8000) {
+            if(GetAsyncKeyState('0' + i) & 0x8000) { //select a save
                 index = i-1;
                 input = true;
             }
+        }
+        if(GetAsyncKeyState('0') & 0x8000) {
+            deleteSave();
+            return false;
         }
     }
 
@@ -320,27 +339,79 @@ bool Map::saveList() {
         return true;
     } else {
         //create new game
-        system("python db_interface\\db_interface.py 2");
+        system("python db_interface\\db_interface.py 2"); //retrieve the list of unlocked characters
         unlockList();
         return false;
     }
 }
 
+void Map::deleteSave() {
+    clearScreen();
+    fstream data;
+    data.open(DATA_FILE, fstream::in);
+
+    vector<int> id_list;
+    int num_saves = readNum(data);
+
+    cout << "Delete a save:" << endl;
+    for(int i = 0; i < 9; i++) {
+        if(i < num_saves) {
+            data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            id_list.push_back(readNum(data));
+            cout << "[" << i+1 << "] " << readSave(data) << '\n' << endl;;
+        } else {
+            cout << "[" << i+1 << "] NEW FILE\n" << endl;
+        }
+    }
+
+    cout << "[0] CANCEL";
+
+    data.close();
+
+    Sleep(50); //wait so we don't get junk leftover inputs from calling to this function
+
+    bool input = false;
+    int index;
+    while(!input) {
+        Sleep(40);
+        for(int i = 1; i <= num_saves; i++) {
+            if(GetAsyncKeyState('0' + i) & 0x8000) {
+                index = i-1;
+                input = true;
+            }
+        }
+        if(GetAsyncKeyState('0') & 0x8000) {
+            index = -1;
+            input = true;
+        }
+    }
+
+    if(index < 0) {
+        return;
+    }
+
+    system(("python db_interface\\db_interface.py 4 " + to_string(id_list[index])).c_str()); //delete save file
+}
+
 void Map::generateReward(){
     // int reward = rand() % 3;
     // int reward = 1;
+    system(("python db_interface\\db_interface.py 7 " + to_string(save_id) + " " + to_string(reward_type)).c_str());
+
     if(reward_type == 1){ // new weapon
         generateWeapon();
     }
-    else if(reward_type == 2){
+    else if(reward_type == 2){ //new item
         generateItem();
     }
-    else if (reward_type == 3) {
+    else if (reward_type == 3) { //stat increase
         generateStatBuff();
+    } else { //new character
+        generateCharReward();
     }
 }
 
-void Map:: generateWeapon(){
+void Map:: generateWeapon() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
@@ -370,6 +441,10 @@ void Map:: generateWeapon(){
     float acc = wep_acc * ench_acc;
     float acc_decay = wep_decay * ench_decay;
 
+    if(acc > 1.000) {
+        acc = 1.000;
+    }
+
     printWeaponBlock(weapon_name, weapon_class, atk_range, atk, atk_var, acc, acc_decay);
     cout << "Do you wish to take this weapon and replace your current weapon with it? (Y/N)" << endl;
     
@@ -391,35 +466,9 @@ void Map::generateItem() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
-    int item_id = readNum(data); //hold item id to alter inventory table after inserting item
-
     Consumable item(readConsumable(data));
 
     data.close();
-
-    // string item_name = "Potion";
-    // string item_desc = "A mysterious vial of liquid";
-    
-    // //initial values for a potion
-    // int healing = rand() % 7;
-    // int dur = rand() % 8;
-    // int spd_buff = 1 + rand() % 3;
-    // int str_buff = 1 + rand() % 5;
-
-    // //ensure that the potion has substantial buffs if no healing
-    // if(healing == 0) {
-    //     dur = 4 + rand() % 4;
-    //     spd_buff = 1 + (rand() % 3);
-    //     str_buff = 2 + (rand() % 5);
-    // }
-    // //ensure that the potion has adequate healing if no buffs
-    // if(dur == 0) {
-    //     spd_buff = 0;
-    //     str_buff = 0;
-    //     healing = 5 + (rand() % 15);
-    // }
-
-    // Consumable item(item_name, item_desc, healing, str_buff, spd_buff, dur);
 
     clearScreen();
     bool item_state = plr.addItem(item);
@@ -657,6 +706,7 @@ Monster Map::readMonster(fstream& data, int rows, int cols) {
 }
 
 Consumable Map::readConsumable(fstream& data) {
+    int id = readNum(data);
     string name = readEntry(data);
     string desc = readEntry(data);
     int heal = readNum(data);
@@ -664,7 +714,7 @@ Consumable Map::readConsumable(fstream& data) {
     int str = readNum(data);
     int dur = readNum(data);
 
-    return Consumable(name, desc, heal, str, spd, dur);
+    return Consumable(name, desc, heal, str, spd, dur, id);
 }
 
 string Map::readCharacter(fstream& data) {
@@ -815,11 +865,19 @@ void Map::phaseAct(bool skip){
         //game state
         if(mnstr.empty()) {
             activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
+            plr.consumeAgain();
             printGrid();
             while(!(GetAsyncKeyState(' ') & 0x8000)){
                 Sleep(40);
             }
             generateReward();
+            
+            //update save file
+            //"<max_hp>,<cur_hp>,<str>,<spd>"
+            system(("python db_interface\\db_interface.py 8 " + to_string(save_id) + " " + to_string(plr.getMaxHp()) + "," + to_string(plr.getCurHp()) + "," + to_string(plr.getStr()) + "," + to_string(plr.getMove())).c_str());
+            //get a new map
+            system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 0").c_str());
+
             createNewMap();
             new_map_created = true;
         }
@@ -855,7 +913,9 @@ bool Map::playerAttack(){
     if(plr.canAttack(crsr.getRow(), crsr.getCol()) && mnstr_index >= 0){
         int damage = plr.rollAttack(crsr.getRow(), crsr.getCol());
         mnstr[mnstr_index].receiveAttack(damage);
-        if(mnstr[mnstr_index].isDead()){
+        if(damage < 0) {
+            activity = "Your attack missed!";
+        } else if(mnstr[mnstr_index].isDead()){
             activity = "You killed the " + mnstr[mnstr_index].getName() + "!";
             grid[mnstr[mnstr_index].getRow()][mnstr[mnstr_index].getCol()] = bkgrnd;
             mnstr.erase(mnstr.begin() + mnstr_index);
@@ -864,7 +924,7 @@ bool Map::playerAttack(){
             if(plr.getWeaponClass() == "melee"){
                 activity = "You swung your ";
             }
-            else if(plr.getWeaponClass() == "range"){
+            else if(plr.getWeaponClass() == "ranged"){
                 activity = "You aimed and fired your ";
             }
             activity += (plr.getWeaponName() + " and dealt " + to_string(damage) + " damage to the " + mnstr[mnstr_index].getName() + "!"); 
@@ -886,10 +946,10 @@ void Map::handleMonsters(){
             active_mons_coord[0] = mnstr[i].getRow();
             active_mons_coord[1] = mnstr[i].getCol();
             printGrid();
-            Sleep(750);
+            Sleep(500);
             monsterAttack(i);
             printGrid();
-            Sleep(750);
+            Sleep(600);
         }
     }
     active_mons_coord[0] = -1;

@@ -53,7 +53,7 @@ void gameLoop(Map& map){
     bool last_input_moved = false;
     while(!map.getGameOver()){
         detectInput(map, last_input_moved);
-        Sleep(40);
+        Sleep(20);
     }
 }
 

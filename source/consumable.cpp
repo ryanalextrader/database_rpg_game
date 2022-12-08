@@ -1,14 +1,15 @@
 #include "..\headers\consumable.h"
 
-Consumable::Consumable() : Consumable("Steak", "a nice, juicy, useless steak", 0, 0, 0, 0) {}
+Consumable::Consumable() : Consumable("Steak", "a nice, juicy, useless steak", 0, 0, 0, 0, 0) {}
 
-Consumable::Consumable(string item_name, string item_desc, int healing, int strength_buff, int speed_buff, int duration) {
+Consumable::Consumable(string item_name, string item_desc, int healing, int strength_buff, int speed_buff, int duration, int db_index) {
     name = item_name;
     desc = item_desc;
     heal = healing;
     str_b = strength_buff;
     move_b = speed_buff;
     dur = duration;
+    id = db_index;
 }
 
 string Consumable::getName() const {
@@ -28,6 +29,9 @@ int Consumable::getMoveB() const {
 }
 int Consumable::getDur() const {
     return dur;
+}
+int Consumable::getId() const {
+    return id;
 }
 
 string Consumable::getStats() const {

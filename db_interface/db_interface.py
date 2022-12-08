@@ -5,6 +5,7 @@ import pymysql
 
 # load save queries /////////////////////////////////////////////////////////////////////////
 #   load save queries
+#called argv[1] == 5 and argv[2] = <save_id>
 def load_save_file(save_id):
     query = []
     #connect to mysql dbms
@@ -60,15 +61,40 @@ def load_save_file(save_id):
     for att in row:
         row_string += str(att) + ';'
     query.append(row_string)
-    
+
+    #query to retrieve number of items in inventory
+    sql = "SELECT count(*) "
+    sql += "FROM inventory "
+    sql += "GROUP BY save "
+    sql += "HAVING save = " + str(save_id)
+
+    crsr.execute(sql) #execute the query
+
+    row = crsr.fetchone() #fetch the one row that is returned
+    query.append(str(row[0]) + ";") #append the single attribute of this row to query results
+
+    #query to retrieve all items in inventory
+    sql = "SELECT c.id, c.name, c.desc, c.heal, c.spd, c.str, c.dur "
+    sql += "FROM inventory i JOIN consumable c ON i.item = c.id "
+    sql += "WHERE i.save = " + str(save_id)
+
+    crsr.execute(sql) #execute the query
+
+    #append each attribute of query result ot list of query results
+    for row in crsr:
+        row_string = ''
+        for att in row:
+            row_string += str(att) + ';'
+        query.append(row_string)
+
     #write to file
     file = open("data\\runtime_data.txt", "w")
 
     for line in query:
         file.write(line + "\n")
     
+    #clean up
     file.close()
-
     crsr.close()
 
 #called with argv[1] == 1
@@ -100,10 +126,9 @@ def get_save_files():
     for line in query:
         file.write(line + "\n")
     
+    #clean up
     file.close()
-
     crsr.close()
-    return query
 
     #start new save queries
 #called with argv[1] == 2
@@ -140,8 +165,8 @@ def get_character_list():
     for line in query:
         file.write(line + "\n")
     
+    #clean up
     file.close()
-
     crsr.close()
 
 def get_character_stats(character_id):
@@ -157,7 +182,7 @@ def get_character_stats(character_id):
 
     row = crsr.fetchone()
     
-    crsr.close()
+    crsr.close() #clean up
     return row
 
 #called with argv[1] == 3 and argv[2] == <character_id>
@@ -176,9 +201,22 @@ def start_new_save(character_id):
     sql += "VALUES('" + str(name) + "'," + str(hp) + "," + str(hp) + "," + str(strength) + "," + str(speed) + "," + str(weapon) + ",1,1,501)"
     
     crsr.execute(sql)
-    db.commit()
+    db.commit() #confirm table manipulation
 
-    crsr.close()
+    crsr.close() #clean up
+
+#delete save file queries////////////////////////////////////////////////////////////////////
+#called with argv[1] == 4 and argv[2] == <save_id>
+def delete_save_file(save_id):
+    #connect to mysql dbms
+    db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
+    crsr = db.cursor()
+
+    #query to delete tuple with id = "save_id"
+    sql = "DELETE FROM save WHERE id = " + str(save_id)
+    crsr.execute(sql) #execute query
+    db.commit() #confirm table manipulation
+    crsr.close() #clean up
 
 #reward queries /////////////////////////////////////////////////////////////////////////////
 def get_next_unlock_id(save_id):
@@ -200,7 +238,7 @@ def get_next_unlock_id(save_id):
     crsr.execute(sql) #execute the query 
     row = crsr.fetchone()
 
-    crsr.close()
+    crsr.close() #clean up
     return row[0]
 
 def unlock_character(save_id):
@@ -210,9 +248,9 @@ def unlock_character(save_id):
     crsr = db.cursor()
     sql = "UPDATE `character` SET is_unlocked = 1 WHERE (id = " + str(id) + ")"
     crsr.execute(sql)
-    db.commit()
+    db.commit() #confirm table manipulation
 
-    crsr.close()
+    crsr.close() #clean up
 
 def get_new_weapon():
     query = []
@@ -231,9 +269,14 @@ def get_new_weapon():
         row_string += str(att) + ';'
     query.append(row_string)
 
-    for line in query:
-        print(line)
+    #write to file
+    file = open("data\\runtime_data.txt", "w")
 
+    for line in query:
+        file.write(line + "\n")
+
+    #clean up
+    file.close()
     crsr.close()
     return query
 
@@ -255,10 +298,15 @@ def get_new_enchant(save_id):
         row_string += str(att) + ';'
     query.append(row_string)
 
-    for line in query:
-        print(line)
+    #write to file
+    file = open("data\\runtime_data.txt", "a")
 
+    for line in query:
+        file.write(line + "\n")
+
+    #clean up
     crsr.close()
+    file.close()
     return query
 
 def swap_weapon(save_id, new_weapon_id, new_enchant_id):
@@ -267,9 +315,9 @@ def swap_weapon(save_id, new_weapon_id, new_enchant_id):
     crsr = db.cursor()
     sql = "UPDATE save SET wep_id = " + str(new_weapon_id) + ", enchant_id = " + str(new_enchant_id) + " WHERE (id = " + str(save_id) + ")" 
     crsr.execute(sql) #execute the query
-    db.commit()
+    db.commit() #confirm table manipulation
 
-    crsr.close()
+    crsr.close() #clean up
 
 def attempt_add_consumable_to_inventory(save_id, consumable_id):
     query = []
@@ -289,9 +337,9 @@ def attempt_add_consumable_to_inventory(save_id, consumable_id):
     if in_inventory < 9:
         sql = "INSERT INTO inventory(save, item) VALUES(" + str(save_id) + "," + str(consumable_id) + ");"
         crsr.execute(sql) #execute the query
-        db.commit()
+        db.commit() #confirm table manipulation
 
-    crsr.close()
+    crsr.close() #clean up
 
 def get_new_consumable(save_id):
     query = []
@@ -314,12 +362,19 @@ def get_new_consumable(save_id):
     query.append(row_string)
     
     attempt_add_consumable_to_inventory(save_id, consumable_id)
-    for line in query:
-        print(line)
     
+    #write to file
+    file = open("data\\runtime_data.txt", "w")
+
+    for line in query:
+        file.write(line + "\n")
+    
+    #clean up
+    file.close()
     crsr.close()
     return query
 
+#called with argv[1] = 7 argv[2] = <save_file> argv[3] = <reward_type>
 def get_reward(save_id, reward_type):
     if reward_type == 1:
         get_new_weapon()
@@ -337,9 +392,9 @@ def swap_consumables(save_id, deletion_consumable_id, new_consumable_id):
         crsr = db.cursor()
         sql = "UPDATE inventory SET item = " + str(new_consumable_id) + " WHERE (id = " + str(id) + ")" 
         crsr.execute(sql) #execute the query
-        db.commit()
+        db.commit() #confirm table manipulation
 
-        crsr.close()
+        crsr.close()#clean up
 
 #update map queries/////////////////////////////////////////////////////////////////////////
 def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
@@ -383,22 +438,33 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
             row_string += str(att) + ';'
         query.append(row_string)
 
-    for line in query:
-        print(line)
+    #write to file
+    file = open("data\\runtime_data.txt", "a")
 
+    for line in query:
+        file.write(line + "\n")
+
+    #clean up
+    file.close()
     crsr.close()
     return query
 
-def select_new_map(save_id):
+#called with argv[1] = 6, argv[2] = <save_id>, and argv[3] = <just_loaded>
+def select_map(save_id, just_loaded):
     query = []
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
     crsr = db.cursor()
-    sql = "SELECT m.id, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme, m.num_monsters "
-    sql += "FROM map m, save s "
-    sql += "WHERE m.start_floor <= s.level and m.end_floor >= s.level and s.id = " + str(save_id) + " "
-    sql += "ORDER BY Rand() "
-    sql += "LIMIT 1"
+    if not just_loaded:
+        sql = "SELECT m.id, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme, m.num_monsters "
+        sql += "FROM map m, save s "
+        sql += "WHERE m.start_floor <= s.level and m.end_floor >= s.level and s.id = " + str(save_id) + " "
+        sql += "ORDER BY Rand() "
+        sql += "LIMIT 1"
+    else:
+        sql = "SELECT m.id, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme, m.num_monsters "
+        sql += "FROM map m, save s "
+        sql += "WHERE s.on_map = m.id AND s.id = " + str(save_id)
 
     crsr.execute(sql) #execute the query
 
@@ -406,31 +472,42 @@ def select_new_map(save_id):
     row = crsr.fetchone()
     id = row[0]
     num_mons = row[7]
+    mons_plus_boss = num_mons
     max_mons_types = row[1]
     boss_fight = row[2]
-    reward_type = row[3]
+
+    if(boss_fight):
+        mons_plus_boss += 1
 
     row_string = ''
-    for att in range(8):
+    for att in range(7):
         if att > 2:
             row_string += str(row[att]) + ';'
+    row_string += str(mons_plus_boss) + ';'
     query.append(row_string)
+
 
     sql = "UPDATE save "
     sql += "SET on_map = " + str(id) + " "
     sql += "WHERE id = " + str(save_id)
 
     crsr.execute(sql) #execute update query
-    db.commit()
+    db.commit() #confirm table manipulation
+
+    #write to file
+    file = open("data\\runtime_data.txt", "w")
 
     for line in query:
-        print(line)
+        file.write(line + "\n")
 
+    #clean up
+    file.close()
     crsr.close()
 
     get_list_monsters(save_id, num_mons, max_mons_types, boss_fight)
 
 #update save query///////////////////////////////////////////////////////////////////////////
+#called with argv[1] = 8, argv[2] = <save_id>, and argv[3] = update 
 #update is string like so: "<max_hp>,<cur_hp>,<str>,<spd>"
 def update_save(save_id, update):
     update_stat_list = update.split(',')
@@ -458,9 +535,9 @@ def update_save(save_id, update):
     sql += ", spd = " + str(spd) + ", level = " + str(level) + " WHERE id = " + str(save_id)
 
     crsr.execute(sql)
-    db.commit()
+    db.commit() #confirm table manipulation
 
-    crsr.close()
+    crsr.close() #clean up
 
 #use consumables query///////////////////////////////////////////////////////////////////////
 def get_inventory_id(save_id, consumable_id):
@@ -478,7 +555,7 @@ def get_inventory_id(save_id, consumable_id):
     row = crsr.fetchone()
     id = row[0]
     
-    crsr.close()
+    crsr.close() #clean up
     return id
 
 def use_consumable(save_id, consumable_id):
@@ -489,9 +566,9 @@ def use_consumable(save_id, consumable_id):
         crsr = db.cursor()
         sql = "DELETE FROM inventory WHERE (id = " + str(id) + ")"
         crsr.execute(sql) #execute the query
-        db.commit()
+        db.commit() #confirm table manipulation
 
-        crsr.close()
+        crsr.close() #clean up
 
 def read_file_write_db(save_id):
     return
@@ -502,27 +579,20 @@ def read_db_write_file(save_id):
 def choose_query():
     if int(sys.argv[1]) == 1:
         get_save_files()
-    if int(sys.argv[1]) == 2:
+    elif int(sys.argv[1]) == 2:
         get_character_list()
+    elif int(sys.argv[1]) == 3:
+        start_new_save(int(sys.argv[2]))
+    elif int(sys.argv[1]) == 4:
+        delete_save_file(int(sys.argv[2]))
+    elif int(sys.argv[1]) == 5:
+        load_save_file(int(sys.argv[2]))
+    elif int(sys.argv[1]) == 6:
+        select_map(int(sys.argv[2]), bool(int(sys.argv[3])))
+    elif int(sys.argv[1]) == 7:
+        get_reward(int(sys.argv[2]), int(sys.argv[3]))
+    elif int(sys.argv[1]) == 8:
+        update_save(int(sys.argv[2]), str(sys.argv[3]))
 
 if __name__ == '__main__':
-    # if int(sys.argv[1]) == 1:
-    #     open("test_passed.txt", "x")
-    # get_consumable(1)
-    # get_enchant(1)
-    # get_save_files()
     choose_query()
-    # load_save_file(1)
-    #update_save(1, "40,35,5,10")
-    # start_new_save(2)
-    # get_possible_maps(1)
-    # select_new_map(1)
-    # unlock_character(1)
-    # swap_consumables(1, 7, 8)
-    # use_consumable(1, 1)
-    # swap_weapon(1, 1, 2)
-    # if(int(sys.argv[1])):
-    #     read_file_write_db(int(sys.argv[2]))
-    # else:
-    #     read_db_write_file(int(sys.argv[2]))
-    # get_list_monsters(1, 2)

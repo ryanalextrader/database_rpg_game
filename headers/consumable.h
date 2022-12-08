@@ -13,9 +13,11 @@ private:
     int move_b;
     int dur;
 
+    int id;
+
 public:
     Consumable();
-    Consumable(string item_name, string item_desc, int healing, int strength_buff, int speed_buff, int duration);
+    Consumable(string item_name, string item_desc, int healing, int strength_buff, int speed_buff, int duration, int db_index);
 
     string getName() const;
     string getDesc() const;
@@ -23,6 +25,7 @@ public:
     int getStrB() const;
     int getMoveB() const;
     int getDur() const;
+    int getId() const;
 
     string getStats() const;
 };
