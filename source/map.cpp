@@ -823,6 +823,9 @@ void Map::phaseAct(bool skip){
             activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
             level++;
             
+            plr.consumeAgain();
+            printGrid();
+
             plr.floorHeal();
             //update save file
             //"<max_hp>,<cur_hp>,<str>,<spd>"
@@ -834,8 +837,7 @@ void Map::phaseAct(bool skip){
             }
             used_items.clear();
 
-            plr.consumeAgain();
-            printGrid();
+
             while(!(GetAsyncKeyState(' ') & 0x8000)){
                 Sleep(40);
             }
