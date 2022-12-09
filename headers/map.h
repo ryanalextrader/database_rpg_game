@@ -26,6 +26,7 @@ class Map{
         int level;
         bool game_over;
 
+        vector<int> used_items;
         int reward_type;
         int save_id;
 

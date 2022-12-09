@@ -233,6 +233,9 @@ void Map::createPlayer() {
 
 void Map::createInventory(fstream& data) {
     int num_items = readNum(data);
+    if(num_items <= 0) { //no items, no inventory
+        return;
+    }
     for(int i = 0; i < num_items; i++) {
         data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         plr.addItem(readConsumable(data));
@@ -396,7 +399,7 @@ void Map::deleteSave() {
 void Map::generateReward(){
     // int reward = rand() % 3;
     // int reward = 1;
-    system(("python db_interface\\db_interface.py 7 " + to_string(save_id) + " " + to_string(reward_type)).c_str());
+    system(("python db_interface\\db_interface.py 7 " + to_string(save_id) + " " + to_string(reward_type)).c_str()); //call the basic generate reward script (prints weapon or item to file)
 
     if(reward_type == 1){ // new weapon
         generateWeapon();
@@ -455,6 +458,7 @@ void Map:: generateWeapon() {
             plr.tradeWeapons(weapon_name, weapon_class, atk, atk_range, atk_var, acc, acc_decay);
             input = true;
             //update save's weapon_id and enchant_id
+            system(("python db_interface\\db_interface.py 11 " + to_string(save_id) + " " + to_string(wep_id) + " " + to_string(ench_id)).c_str());
         }
         else if((GetAsyncKeyState('N') & 0x8000)){
             input = true;
@@ -483,9 +487,10 @@ void Map::generateItem() {
             Sleep(40);
             for(int i = 1; i < 10; i++) {
                 if(GetAsyncKeyState('0' + i) & 0x8000) {
+                    //find and replace the item in inventory table
+                    system(("python db_interface\\db_interface.py 9 " + to_string(save_id) + " " + to_string(plr.getItemId(i)) + " " + to_string(item.getId())).c_str());
                     plr.replaceItem(item, i);
                     input = true;
-                    //find and replace the item in inventory table
                 }
             }
             if(GetAsyncKeyState('0') & 0x8000) {
@@ -743,66 +748,9 @@ Map::Map(){
     level = 0;
     bkgrnd = '+';
     block_width = 20;
-    // fstream data;
-    // data.open(DATA_FILE, fstream::out | fstream::binary);
-    // data << "1;45;40;5;4;\nlongsword;melee;15;4;1;0.8;0.0;\nnew;0.9;1.0;1.0;1.0" << flush;
-    // data.close();
-    // plr = createPlayer();
-    // data.open(DATA_FILE, fstream::out | fstream::binary);
-    // data << "1;20;25;dungeon;3;\n" << 
-    //         "SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;\n" <<
-    //         "SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;\n" <<
-    //         "RAT;An ugly, oversized rodent riddled with disease;3;6;3;1;3;0.9;0.0;n;10;0;1;1;" << flush;
-    // data.close();
-    // createNewMap();
 
     mainMenu();
 }
-
-// Map::Map() : Map(12, 12, '+', 7, "Fire", 12) {}
-
-// Map::Map(int rows, int cols, char back, int num_monst, string dungeon_theme, int wall_clr){
-//     plr = Player(rand() % rows, rand() % cols, "Bastard sword", "melee");
-//     block_width = 20;
-//     level = 0;
-    
-//     phase = 0;
-//     theme = dungeon_theme;
-//     wall_color = wall_clr;
-//     active_mons_coord[0] = -1;
-//     active_mons_coord[1] = -1;
-    
-
-//     for(int i = 0; i < num_monst; i++) {
-//         mnstr.push_back(Monster(rand() % cols, rand() % rows, '0', 2, 1, 0));
-//     }
-    
-//     bkgrnd = back;
-//     grid.assign(rows, vector<char>());
-//     for(int i = 0; i < rows; i++){
-//         grid[i].assign(cols, back);
-//     }
-//     grid[plr.getRow()][plr.getCol()] = plr.getToken();
-
-//     //make sure no monsters overlap with any other monsters or the player
-//     bool overlap = true;
-//     while(overlap) {
-//         overlap = false;
-//         for(int i = 0; i < mnstr.size(); i++) {
-//             if(checkOverlap(i)) {
-//                 handleOverlap(mnstr[i]);
-//                 overlap = true;
-//             }
-//         }
-//     }
-
-//     //add monsters to grid
-//     for(int i = 0; i < mnstr.size(); i++) {
-//         grid[mnstr[i].getRow()][mnstr[i].getCol()] = mnstr[i].getToken();
-//     }
-
-//     activity = "You enter a " + theme + " room with " + to_string(mnstr.size()) + " monsters. Move when ready.";
-// }
 
 void Map::setNumRowsCols(int row, int col){
     // set number of rows in the grid
@@ -841,6 +789,7 @@ void Map::phaseAct(bool skip){
                 activity = "YOU DIED! GAME OVER!";
                 printGrid();
                 game_over = true;
+                system(("python db_interface\\db_interface.py 4 " + to_string(save_id)).c_str()); //delete save file
             }
             phase = 0;
         }
@@ -859,6 +808,7 @@ void Map::phaseAct(bool skip){
                 activity = "YOU DIED! GAME OVER!";
                 printGrid();
                 game_over = true;
+                system(("python db_interface\\db_interface.py 4 " + to_string(save_id)).c_str()); //delete save file
             }
             phase = 0;
         }
@@ -875,6 +825,13 @@ void Map::phaseAct(bool skip){
             //update save file
             //"<max_hp>,<cur_hp>,<str>,<spd>"
             system(("python db_interface\\db_interface.py 8 " + to_string(save_id) + " " + to_string(plr.getMaxHp()) + "," + to_string(plr.getCurHp()) + "," + to_string(plr.getStr()) + "," + to_string(plr.getMove())).c_str());
+            
+            //delete all used items
+            for(int i = 0; i < used_items.size(); i++) {
+                system(("python db_interface\\db_interface.py 10 " + to_string(save_id) + " " + to_string(used_items[i])).c_str());
+            }
+            used_items.clear();
+
             //get a new map
             system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 0").c_str());
 
@@ -1008,9 +965,11 @@ void Map::inventorySelection(){
     cout << "[0] Return to game" << endl;
     bool input = false;
     while(!input){
-        for(int i = 0; i < 9; i++){
-            if(GetAsyncKeyState('1' + i) & 0x8000){
-                if(plr.consume(i + 1)){
+        for(int i = 1; i <= plr.getInvSize(); i++){
+            if(GetAsyncKeyState('0' + i) & 0x8000){
+                used_items.push_back(plr.getItemId(i)); //keep a record of used items in order to update database at end of floor
+                //if we delete here, then quitting out in the middle of a floor actively harms the player
+                if(plr.consume(i)){
                     input = true;
                 }
             }

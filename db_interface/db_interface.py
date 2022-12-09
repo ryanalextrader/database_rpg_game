@@ -71,21 +71,24 @@ def load_save_file(save_id):
     crsr.execute(sql) #execute the query
 
     row = crsr.fetchone() #fetch the one row that is returned
-    query.append(str(row[0]) + ";") #append the single attribute of this row to query results
+    if row is not None:
+        query.append(str(row[0]) + ";") #append the single attribute of this row to query results
 
-    #query to retrieve all items in inventory
-    sql = "SELECT c.id, c.name, c.desc, c.heal, c.spd, c.str, c.dur "
-    sql += "FROM inventory i JOIN consumable c ON i.item = c.id "
-    sql += "WHERE i.save = " + str(save_id)
+        #query to retrieve all items in inventory
+        sql = "SELECT c.id, c.name, c.desc, c.heal, c.spd, c.str, c.dur "
+        sql += "FROM inventory i JOIN consumable c ON i.item = c.id "
+        sql += "WHERE i.save = " + str(save_id)
 
-    crsr.execute(sql) #execute the query
+        crsr.execute(sql) #execute the query
 
-    #append each attribute of query result ot list of query results
-    for row in crsr:
-        row_string = ''
-        for att in row:
-            row_string += str(att) + ';'
-        query.append(row_string)
+        #append each attribute of query result ot list of query results
+        for row in crsr:
+            row_string = ''
+            for att in row:
+                row_string += str(att) + ';'
+            query.append(row_string)
+    else:
+        query.append("0;") #no items :)
 
     #write to file
     file = open("data\\runtime_data.txt", "w")
@@ -384,6 +387,7 @@ def get_reward(save_id, reward_type):
     elif reward_type == 4:
         unlock_character(save_id)
 
+#called with 
 def swap_consumables(save_id, deletion_consumable_id, new_consumable_id):
     id = get_inventory_id(save_id, deletion_consumable_id)
     if id != -1:
@@ -541,7 +545,6 @@ def update_save(save_id, update):
 
 #use consumables query///////////////////////////////////////////////////////////////////////
 def get_inventory_id(save_id, consumable_id):
-    query = []
     #connect to mysql dbms
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
     crsr = db.cursor()
@@ -553,11 +556,13 @@ def get_inventory_id(save_id, consumable_id):
     crsr.execute(sql) #execute the query
     id = -1
     row = crsr.fetchone()
-    id = row[0]
+    if row is not None:
+        id = row[0]
     
     crsr.close() #clean up
     return id
 
+#called with argv[1] = 10, argv[2] = <save_id>, and argv[3] = <consumable_id>
 def use_consumable(save_id, consumable_id):
     id = get_inventory_id(save_id, consumable_id)
     if id != -1:
@@ -569,12 +574,6 @@ def use_consumable(save_id, consumable_id):
         db.commit() #confirm table manipulation
 
         crsr.close() #clean up
-
-def read_file_write_db(save_id):
-    return
-
-def read_db_write_file(save_id):
-    return
 
 def choose_query():
     if int(sys.argv[1]) == 1:
@@ -593,6 +592,12 @@ def choose_query():
         get_reward(int(sys.argv[2]), int(sys.argv[3]))
     elif int(sys.argv[1]) == 8:
         update_save(int(sys.argv[2]), str(sys.argv[3]))
+    elif int(sys.argv[1]) == 9:
+        swap_consumables(int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
+    elif int(sys.argv[1]) == 10:
+        use_consumable(int(sys.argv[2]), int(sys.argv[3]))
+    elif int(sys.argv[1]) == 11:
+        swap_weapon(int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
 
 if __name__ == '__main__':
     choose_query()

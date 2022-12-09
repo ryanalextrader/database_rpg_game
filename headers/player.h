@@ -53,6 +53,8 @@ public:
     string getWeaponClass() const;
     vector<string> getConsumeEffects() const;
     string getInventoryList();
+    int getItemId(int index);
+    int getInvSize() const;
     bool isBuffed() const;
 
     int setCurHP(int val);

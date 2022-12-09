@@ -1,4 +1,4 @@
-4;10;10;dungeon;3;
-SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;
-SLIME;Animated sludge with questionable intelligence;6;8;2;1;2;0.7;0.0;o;17;0;1;1;
-KING GOOP;A massive amount of sludge. Is it one big slime, or many smaller ones?;5;14;4;2;3;0.85;0.1;O;34;0;1;1;1;
+3;12;12;forest;3;
+WOLF;A wild, ferocious canine;5;8;5;1;4;0.8;0.0;W;15;0;1;1;
+GOBLIN;A squat green humanoid armed with a shoddy bow;6;4;3;3;4;0.85;0.1;i;15;0;1;2;
+GOBLIN;A squat green humanoid armed with a shoddy bow;6;4;3;3;4;0.85;0.1;i;15;0;1;2;

@@ -50,10 +50,6 @@ bool Player::consume(int index) {
         return false;
     }
     
-    //reset consumable buffs
-    if(consume_dur > 0) {
-        consumeAgain();
-    }
 
     //look through the inventory
     list<Consumable>::iterator inv_cursor = inventory.begin();
@@ -61,6 +57,10 @@ bool Player::consume(int index) {
         inv_cursor++;
     }
 
+    //reset consumable buffs iff you have a buff and the potion you are consuming also has a buff
+    if(consume_dur > 0 && inv_cursor->getDur() > 0) {
+        consumeAgain();
+    }
     //consume the item
     cur_hp += inv_cursor->getHeal();
     if(cur_hp > max_hp) {
@@ -115,7 +115,7 @@ bool Player::replaceItem(Consumable n_item, int index) {
         inv_crsr++;
     }
 
-    inventory.insert(inv_crsr, n_item);
+    inv_crsr = inventory.insert(inv_crsr, n_item);
     inv_crsr++;
     inventory.erase(inv_crsr);
     
@@ -231,6 +231,22 @@ string Player::getInventoryList() {
 */
 
     return inv_list;
+}
+
+int Player::getItemId(int index) {
+    if(index > inventory.size() || index < 1) {
+        return -1;
+    }
+
+    list<Consumable>::iterator inv_crsr = inventory.begin();
+    for(int i = 1; i < index; i++) {
+        inv_crsr++;
+    }
+    return inv_crsr->getId();
+}
+
+int Player::getInvSize() const {
+    return inventory.size();
 }
 
 bool Player::isBuffed() const {
