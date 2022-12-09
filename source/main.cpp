@@ -67,4 +67,5 @@ int main(){
     clearScreen();
     game.printGrid();
     gameLoop(game);
+    clearScreen();
 }
