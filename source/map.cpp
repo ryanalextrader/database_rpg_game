@@ -552,7 +552,7 @@ void Map::generateCharReward() {
 
 void Map::printMonstBlock(){
     int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
-    cout << string(200, ' ');
+    cout << string(2000, ' ');
     setCursorPos(0, 1 + grid.size());
     cout << endl << activity << endl;
     block_width = 15;
@@ -821,10 +821,16 @@ void Map::phaseAct(bool skip){
         //game state
         if(mnstr.empty()) {
             activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
+            printGrid();
             level++;
+
+            while(!(GetAsyncKeyState(' ') & 0x8000)){
+                Sleep(40);
+            }
+
+            generateReward();            
             
             plr.consumeAgain();
-            printGrid();
 
             plr.floorHeal();
             //update save file
@@ -836,14 +842,6 @@ void Map::phaseAct(bool skip){
                 system(("python db_interface\\db_interface.py 10 " + to_string(save_id) + " " + to_string(used_items[i])).c_str());
             }
             used_items.clear();
-
-
-            while(!(GetAsyncKeyState(' ') & 0x8000)){
-                Sleep(40);
-            }
-            generateReward();
-
-            
 
             //get a new map
             system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 0").c_str());
