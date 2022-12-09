@@ -37,6 +37,9 @@ void detectInput(Map& map, bool & received_input_last_check){
     if(GetAsyncKeyState('Q') & 0x8000){
         map.inventorySelection();
     }
+    if(GetAsyncKeyState(VK_ESCAPE) & 0x8000){
+        map.gameOver();
+    }
     
     if(input){
         if(!received_input_last_check){

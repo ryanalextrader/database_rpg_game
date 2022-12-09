@@ -243,8 +243,6 @@ void Map::createInventory(fstream& data) {
 }
 
 void Map::mainMenu() {
-    //title screen? tutorial screen?
-
     bool loaded_file = false;
     while(!loaded_file) {
         system("python db_interface\\db_interface.py 1"); //list of save files from db
@@ -260,6 +258,7 @@ void Map::mainMenu() {
 
 void Map::unlockList() {
     clearScreen();
+    printTitle();
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
@@ -293,6 +292,7 @@ void Map::unlockList() {
 
 bool Map::saveList() {
     clearScreen();
+    printTitle();
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
@@ -307,10 +307,11 @@ bool Map::saveList() {
             data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             //id, name, max_hp, cur_hp, str, spd
             id_list.push_back(readNum(data));
-            cout << "[" << i+1 << "] " << readSave(data) << '\n' << endl;
+            cout << "[" << i+1 << "] " << readSave(data);
             readEntry(data);
             readEntry(data); //burn wep_id and enchant_id so we can get to level
             level_list.push_back(readNum(data));
+            cout << ". On level " << level_list[i] << ".\n" << endl;
         } else {
             cout << '[' << i+1 << "] NEW FILE" << '\n' << endl;
         }
@@ -350,6 +351,7 @@ bool Map::saveList() {
 
 void Map::deleteSave() {
     clearScreen();
+    printTitle();
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
@@ -361,7 +363,9 @@ void Map::deleteSave() {
         if(i < num_saves) {
             data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             id_list.push_back(readNum(data));
-            cout << "[" << i+1 << "] " << readSave(data) << '\n' << endl;;
+            readEntry(data); //burn wep_id and ench_id to get to level
+            readEntry(data);
+            cout << "[" << i+1 << "] " << readSave(data) << ". On level " << readEntry(data) << ".\n" << endl;;
         } else {
             cout << "[" << i+1 << "] NEW FILE\n" << endl;
         }
@@ -533,7 +537,7 @@ void Map::generateStatBuff(){
 
 void Map::generateCharReward() {
     clearScreen();
-    cout << "New character unlocked!\nThey will be available for you next run.\n\n";
+    cout << "New character unlocked!\nThey will be available for your next run.\n\n";
     
     bool input = false;
     cout << "Press space to continue.";
@@ -582,7 +586,7 @@ void Map::printPlrBlock(int y_pos, int x_pos){
 //name
     y_pos++;
     setCursorPos(x_pos, y_pos);
-    cout << "|" << setw(block_width) << "YOU" << "|";
+    cout << "|" << setw(block_width) << "JERRY" << "|";
 //hp
     y_pos++;
     setCursorPos(x_pos, y_pos);
@@ -983,8 +987,7 @@ void Map::inventorySelection(){
 }
 
 void Map::gameOver() {
-    //uhhh game over screen?
-    //restart?
+    game_over = true;
 }
 
 int Map::getNumRows() const {
@@ -1073,4 +1076,14 @@ void Map::printGrid() {
     int y_pos = 3 + grid.size();
     int x_pos = 2 + block_width;
     printPlrBlock(y_pos, x_pos);
+}
+
+void Map::printTitle() const{
+    cout <<"        | |                    ( )      / __ \\                | |" << endl;  
+    cout <<"        | | ___ _ __ _ __ _   _|/ ___  | |  | |_   _  ___  ___| |_" << endl; 
+    cout <<"    _   | |/ _ \\ '__| '__| | | | / __| | |  | | | | |/ _ \\/ __| __|" <<endl;
+    cout <<"   | |__| |  __/ |  | |  | |_| | \\__ \\ | |__| | |_| |  __/\\__ \\ |_ "<< endl;
+    cout <<"    \\____/ \\___|_|  |_|   \\__, | |___/  \\___\\_ \\__,_|\\___||___/\\__|"<<endl;
+    cout <<"                           __/ |                                   "<<endl;
+    cout <<"                          |___/\n\n" << endl; 
 }

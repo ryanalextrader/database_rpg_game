@@ -90,5 +90,6 @@ class Map{
         bool getGameOver() const;
 
         void printGrid();
+        void printTitle() const;
 };
 #endif
