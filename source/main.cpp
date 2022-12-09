@@ -56,7 +56,7 @@ void gameLoop(Map& map){
     bool last_input_moved = false;
     while(!map.getGameOver()){
         detectInput(map, last_input_moved);
-        Sleep(20);
+        Sleep(10);
     }
 }
 
@@ -67,5 +67,6 @@ int main(){
     clearScreen();
     game.printGrid();
     gameLoop(game);
+    Sleep(3000);
     clearScreen();
 }

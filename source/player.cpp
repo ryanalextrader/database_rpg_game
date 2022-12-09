@@ -256,6 +256,13 @@ bool Player::isBuffed() const {
     return true;
 }
 
+void Player::floorHeal() {
+    cur_hp += 2;
+    if(cur_hp > max_hp) {
+        cur_hp = max_hp;
+    }
+}
+
 int Player::setCurHP(int val) {
     cur_hp = val;
     return cur_hp;

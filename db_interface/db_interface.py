@@ -601,3 +601,4 @@ def choose_query():
 
 if __name__ == '__main__':
     choose_query()
+    # select_map(15, False)

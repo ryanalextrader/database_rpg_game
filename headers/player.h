@@ -48,6 +48,7 @@ public:
     void consumeAgain();
 
     void tradeWeapons(string wep_name, string wep_class, int wep_atk, int wep_atk_range, int wep_atk_var, float wep_acc, float wep_acc_decay);
+    void floorHeal();
 
     string getWeaponName() const;
     string getWeaponClass() const;

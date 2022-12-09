@@ -97,7 +97,6 @@ int Map::findMonster(int row_coord, int col_coord) const {
 void Map::createNewMap(){
     clearScreen();
 
-    level++;
     // to be replaced with queries at future date
     fstream data;
     data.open(DATA_FILE, fstream::in);
@@ -316,6 +315,7 @@ bool Map::saveList() {
             cout << '[' << i+1 << "] NEW FILE" << '\n' << endl;
         }
     }
+    cout << "Options:" << endl;
     cout << "[0] DELETE A SAVE";
 
     data.close();
@@ -363,9 +363,10 @@ void Map::deleteSave() {
         if(i < num_saves) {
             data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             id_list.push_back(readNum(data));
+            cout << "[" << i+1 << "] " << readSave(data);
             readEntry(data); //burn wep_id and ench_id to get to level
             readEntry(data);
-            cout << "[" << i+1 << "] " << readSave(data) << ". On level " << readEntry(data) << ".\n" << endl;;
+            cout << ". On level " << readEntry(data) << ".\n" << endl;;
         } else {
             cout << "[" << i+1 << "] NEW FILE\n" << endl;
         }
@@ -413,8 +414,9 @@ void Map::generateReward(){
     }
     else if (reward_type == 3) { //stat increase
         generateStatBuff();
-    } else { //new character
+    } else { //new character (called after boss fights)
         generateCharReward();
+        plr.setCurHP(plr.getMaxHp()); //heal to full
     }
 }
 
@@ -819,13 +821,9 @@ void Map::phaseAct(bool skip){
         //game state
         if(mnstr.empty()) {
             activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
-            plr.consumeAgain();
-            printGrid();
-            while(!(GetAsyncKeyState(' ') & 0x8000)){
-                Sleep(40);
-            }
-            generateReward();
+            level++;
             
+            plr.floorHeal();
             //update save file
             //"<max_hp>,<cur_hp>,<str>,<spd>"
             system(("python db_interface\\db_interface.py 8 " + to_string(save_id) + " " + to_string(plr.getMaxHp()) + "," + to_string(plr.getCurHp()) + "," + to_string(plr.getStr()) + "," + to_string(plr.getMove())).c_str());
@@ -835,6 +833,15 @@ void Map::phaseAct(bool skip){
                 system(("python db_interface\\db_interface.py 10 " + to_string(save_id) + " " + to_string(used_items[i])).c_str());
             }
             used_items.clear();
+
+            plr.consumeAgain();
+            printGrid();
+            while(!(GetAsyncKeyState(' ') & 0x8000)){
+                Sleep(40);
+            }
+            generateReward();
+
+            
 
             //get a new map
             system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 0").c_str());
@@ -1079,11 +1086,11 @@ void Map::printGrid() {
 }
 
 void Map::printTitle() const{
-    cout <<"        | |                    ( )      / __ \\                | |" << endl;  
-    cout <<"        | | ___ _ __ _ __ _   _|/ ___  | |  | |_   _  ___  ___| |_" << endl; 
-    cout <<"    _   | |/ _ \\ '__| '__| | | | / __| | |  | | | | |/ _ \\/ __| __|" <<endl;
-    cout <<"   | |__| |  __/ |  | |  | |_| | \\__ \\ | |__| | |_| |  __/\\__ \\ |_ "<< endl;
-    cout <<"    \\____/ \\___|_|  |_|   \\__, | |___/  \\___\\_ \\__,_|\\___||___/\\__|"<<endl;
-    cout <<"                           __/ |                                   "<<endl;
-    cout <<"                          |___/\n\n" << endl; 
+    cout << "        | |                    ( )      / __ \\                | |" << endl;  
+    cout << "        | | ___ _ __ _ __ _   _|/ ___  | |  | |_   _  ___  ___| |_" << endl; 
+    cout << "    _   | |/ _ \\ '__| '__| | | | / __| | |  | | | | |/ _ \\/ __| __|" << endl;
+    cout << "   | |__| |  __/ |  | |  | |_| | \\__ \\ | |__| | |_| |  __/\\__ \\ |_ "<< endl;
+    cout << "    \\____/ \\___|_|  |_|   \\__, | |___/  \\___\\_ \\__,_|\\___||___/\\__|"<< endl;
+    cout << "                           __/ |                                   "<< endl;
+    cout << "                          |___/\n\n" << endl; 
 }
