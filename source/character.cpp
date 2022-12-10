@@ -25,7 +25,7 @@ bool Character::canMove(int row_coord, int col_coord) const {
     int drow = row_coord - row;
     int dcol = col_coord - col;
 
-    if((drow*drow + dcol*dcol) <= move*move) {
+    if((drow*drow + dcol*dcol) <= move*move) { //distance formula
         return true;
     }
     return false;
@@ -35,7 +35,7 @@ bool Character::canAttack(int target_row, int target_col) const {
     int drow = target_row - row;
     int dcol = target_col - col;
 
-    if((drow*drow + dcol*dcol) <= atk_range*atk_range) {
+    if((drow*drow + dcol*dcol) <= atk_range*atk_range) { //distance formula
         return true;
     }
     return false;
@@ -46,14 +46,15 @@ int Character::rollAttack(int target_row, int target_col) const {
     int dcol = target_col - col;
     
     //roll accuracy
-    //calculate distance to target
+        //calculate distance to target
     int dist = sqrt(drow*drow + dcol*dcol);
-    //distance * acc_rate = acc_loss
-    //full accuracy within 1 tile, dist - 1
+        //distance * acc_rate = acc_loss
+        //full accuracy within 1 tile -> dist - 1
     float acc_loss = (dist - 1) * acc_rate;
         
-    //1 - (acc - acc_loss) = chance_to_miss
-    //num % 100 > chance_to_miss -> hit
+        //1 - (acc - acc_loss) = chance_to_miss
+        //num % 100 > chance_to_miss -> hit
+        //acc, acc_loss given as percent values, mult by 100
     int roll = 1 + rand() % 100;
     if(roll < 100 * (1 - acc + acc_loss)) {
         return -1; //-1 means miss
@@ -71,8 +72,8 @@ int Character::receiveAttack(int dmg) {
         return -1 * cur_hp; //flag miss, but still return cur_hp
     }
     cur_hp = cur_hp - dmg;
-    if(cur_hp <= 0) {
-        cur_hp = 0; //we don't want to flag a miss if the character dies
+    if(cur_hp <= 0) { //we died
+        cur_hp = 0; //we don't want to accidentally flag a miss in the case the character dies
         dead = true;
     }
     return cur_hp; //return cur_hp

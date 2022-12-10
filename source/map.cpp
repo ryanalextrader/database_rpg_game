@@ -35,12 +35,15 @@ void Map::changeColor(int row_coord, int col_coord) const{
 }
 
 bool Map::checkOverlap(int i) {
+    //don't check if dead monsters are overlapping with anything
     if(mnstr[i].isDead()) {
         return false;
     }
+    //check overlap with the player
     if(mnstr[i].getCol() == plr.getCol() && mnstr[i].getRow() == plr.getRow()) {
         return true;
     }
+    //check overlap with every other monster
     for(int j = 0; j < mnstr.size(); j++) {
         if((mnstr[i].getCol() == mnstr[j].getCol() && mnstr[i].getRow() == mnstr[j].getRow()) && (j != i) && !mnstr[j].isDead()) {
             return true;
@@ -54,30 +57,31 @@ void Map::handleOverlap(Monster & mnstr){
     bool flag = true;
     while(flag) { //this loop will run AT MOST twice. If we are against 1 col wall, we are not against the other, and same with row walls
         flag = false;
-        if(dir == 0 && mnstr.getCol() - 1 >= 0){
+        if(dir == 0 && mnstr.getCol() - 1 >= 0){ //left
             mnstr.setCoords(mnstr.getRow(), mnstr.getCol() - 1);
             return;
-        } else if(dir == 0) {
+        } else if(dir == 0) { //wall
             dir++;
         }
-        if(dir == 1 && mnstr.getCol() + 1 < grid[0].size()){
+        if(dir == 1 && mnstr.getCol() + 1 < grid[0].size()){ //right
             mnstr.setCoords(mnstr.getRow(), mnstr.getCol() + 1);
             return;
-        } else if(dir == 1){
+        } else if(dir == 1){ //wall
             dir--; //go back through the loop to hit the prior statement
             flag = true;
         }
-        if(dir == 2 && mnstr.getRow() - 1 >= 0){
+
+        if(dir == 2 && mnstr.getRow() - 1 >= 0){ //up
             mnstr.setCoords(mnstr.getRow() - 1, mnstr.getCol());
             return;
-        } else if(dir == 2){
+        } else if(dir == 2){ //wall
             dir++;
         }
-        if(dir == 3 && mnstr.getRow() + 1 < grid.size()){
+        if(dir == 3 && mnstr.getRow() + 1 < grid.size()){ //down
             mnstr.setCoords(mnstr.getRow() + 1, mnstr.getCol());
             return;
-        } else if(dir == 3){
-            dir--;
+        } else if(dir == 3){ //wall
+            dir--; //go back through loop to hit prior statement
             flag = true;
         }
     }
@@ -97,7 +101,6 @@ int Map::findMonster(int row_coord, int col_coord) const {
 void Map::createNewMap(){
     clearScreen();
 
-    // to be replaced with queries at future date
     fstream data;
     data.open(DATA_FILE, fstream::in);
     // theme = "Fire";
@@ -107,6 +110,7 @@ void Map::createNewMap(){
 
 //map data formatting:
     //[reward_type];[height];[width];[theme];[num_monsters];
+    //read map data
     reward_type = readNum(data);
     int rows = readNum(data);
     int cols = readNum(data);
@@ -114,22 +118,20 @@ void Map::createNewMap(){
     int num_monsters = readNum(data);
     getThemeColor();
 
+    //read data for all the monsters
     for(int i = 0; i < num_monsters; i++) {
-        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         // from: https://stackoverflow.com/questions/477408/ifstream-end-of-line-and-move-to-next-line
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
         mnstr.push_back(readMonster(data, rows, cols));
     }
 
     data.close();
 
-    // int min_rows_and_cols = 10;
-    // int range = 10;
-
-    // int rows = min_rows_and_cols + (rand() % range);
-    // int cols = min_rows_and_cols + (rand() % range);
-
+    //place the player on the map
     plr.setCoords(rand() % rows, rand() % cols);
 
+    //create our char grid to print
     grid.clear();
     grid.assign(rows, vector<char>());
     for(int i = 0; i < rows; i++){
@@ -137,33 +139,13 @@ void Map::createNewMap(){
     }
     grid[plr.getRow()][plr.getCol()] = plr.getToken();
 
-    crsr.moveCursor(0, 0, grid.size(), grid[0].size());
-
-    // int max_num_monsters = 1;
-    // int num_monsters = 1 + (rand() % max_num_monsters);
-    // string monster_name = "MONSTER";
-    // string description = "Indescribable creature, indescribably ugly";
-    // char symbol = '0';
-    // int behaveP = 2;
-    // int behaveS = 1;
-    // int behaveD = 0;
-    // int spd = 3;
-    // int max_health = 20;
-    // int mons_range = 1;
-    // int damage = 3;
-    // int damage_var = 1;
-    // float accuracy = 0.75;
-    // float accuracy_decay = 0.0;
-    
-    // for(int i = 0; i < num_monsters; i++){
-    //     mnstr.push_back(Monster(monster_name, description, rand() % cols, rand() % rows, 
-    //     symbol, behaveP, behaveS, behaveD, spd, max_health, mons_range, damage, damage_var, 
-    //     accuracy, accuracy_decay));
-    // }
+    //place the player cursor on top of the player
+    crsr.moveCursor(plr.getRow(), plr.getCol(), grid.size(), grid[0].size());
 
     //make sure no monsters overlap with any other monsters or the player
     bool overlap = true;
     while(overlap) {
+        //keep looping until we do not find any overlaps
         overlap = false;
         for(int i = 0; i < mnstr.size(); i++) {
             if(checkOverlap(i)) {
@@ -186,6 +168,7 @@ void Map::createPlayer() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
+    //keep the save_id for calling future queries
     save_id = readNum(data);
 
     //read player data
@@ -220,6 +203,9 @@ void Map::createPlayer() {
     int atk = wep_atk * ench_atk;
     int atk_var = wep_var * ench_var;
     float acc = wep_acc * ench_acc;
+    if(acc > 1.000) { //ensure accuracy is less than 1
+        acc = 1.000
+    }
     float acc_decay = wep_decay * ench_decay;
 
     plr = Player(0, 0, weapon_name, weapon_class, spd, max_hp, atk_range, atk, atk_var, acc, acc_decay, str);
@@ -264,6 +250,7 @@ void Map::unlockList() {
     int num_unlocked = readNum(data);
     vector<int> id_list;
 
+    //read every character line in the file
     cout << "Unlocked characters:" << endl;
     for(int i = 0; i < num_unlocked; i++) {
         data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -273,12 +260,13 @@ void Map::unlockList() {
 
     data.close();
 
+    //check the number keys for the user selection
     int index;
     bool input = false;
     while(!input) {
         Sleep(40);
         for(int i = 1; i <= num_unlocked; i++) {
-            if(GetAsyncKeyState('0' + i) & 0x8000) {
+            if(GetAsyncKeyState('0' + i) & 0x8000) { //ASCII values for numbers are in numeric order, '0' + 1 == '1'
                 index = i-1;
                 input = true;
             }
@@ -299,6 +287,7 @@ bool Map::saveList() {
     vector<int> id_list;
     vector<int> level_list;
 
+    //display save info
     cout << "Save files:" << endl;
     for(int i = 0; i < 9; i++) {
         //run til eof
@@ -320,7 +309,7 @@ bool Map::saveList() {
 
     data.close();
 
-    //player selects save file
+    //read number keys
     int index;
     bool input = false;
     while(!input) {
@@ -338,6 +327,7 @@ bool Map::saveList() {
     }
 
     if(index < num_saves) {
+        //select existing save
         save_id = id_list[index];
         level = level_list[index];
         return true;
@@ -358,6 +348,7 @@ void Map::deleteSave() {
     vector<int> id_list;
     int num_saves = readNum(data);
 
+    //display save info
     cout << "Delete a save:" << endl;
     for(int i = 0; i < 9; i++) {
         if(i < num_saves) {
@@ -377,18 +368,20 @@ void Map::deleteSave() {
     data.close();
 
     Sleep(50); //wait so we don't get junk leftover inputs from calling to this function
+               //otherwise we will immediately cancel this function call and cannot delete saves
 
+    //read user input
     bool input = false;
     int index;
     while(!input) {
         Sleep(40);
         for(int i = 1; i <= num_saves; i++) {
-            if(GetAsyncKeyState('0' + i) & 0x8000) {
+            if(GetAsyncKeyState('0' + i) & 0x8000) { //character is selected
                 index = i-1;
                 input = true;
             }
         }
-        if(GetAsyncKeyState('0') & 0x8000) {
+        if(GetAsyncKeyState('0') & 0x8000) { //cancel
             index = -1;
             input = true;
         }
@@ -785,7 +778,8 @@ void Map::moveCursor(char dir){
 void Map::phaseAct(bool skip){
     bool new_map_created = false;
     
-    if(skip){
+    //phase 0, player move; phase 1, player attack, monsters
+    if(skip){ //skip player action
         if(phase == 0){
             phase++;
         }

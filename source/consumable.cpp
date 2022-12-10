@@ -35,17 +35,27 @@ int Consumable::getId() const {
 }
 
 string Consumable::getStats() const {
+    //formatted as:
+    /*
+    [name]: [desc]
+    [] hp, [] str, [] move, [] turns
+
+    ONLY DISPLAYS NONZERO VALUES
+    */
     string effects = name + ": " + desc + "\n";
     if(heal != 0) {
         effects += std::to_string(heal) + " hp";
     }
     if(dur > 0) {
+        //if heal is nonzero, there is a preceding entry to the buffs
         if(heal != 0)
             effects += ", ";
         if(str_b != 0)
             effects += std::to_string(str_b) + " str, ";
         if(move_b != 0)
             effects += std::to_string(move_b) + " move, ";
+        //if a potion has a duration, it has one (or more) of str/move changes
+        //therefore, str and move will *never* be the final output
         effects += std::to_string(dur) + " turns";
     }
 

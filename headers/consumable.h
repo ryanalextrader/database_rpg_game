@@ -27,11 +27,8 @@ public:
     int getDur() const;
     int getId() const;
 
+    //returns a string with the name and description of the item, along with any effects it has
     string getStats() const;
 };
 
 #endif
-
-//give consumable to player
-//enforce inventory cap
-//show inventory

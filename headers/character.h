@@ -26,30 +26,25 @@ protected:
     float acc; //1.0 -> always hits, 0.9 -> 90% chance to hit...
     float acc_rate; //how much the accuracy decreases every unit of distance
 
-    // int setStr(int value);
-    // int setMove(int value);
-    // int setMaxHp(int value);
-
-    // //positive number
-    // int setAtkRange(int value);
-    // //positive number
-    // int setAtk(int value);
-    // //positive number, less than atk
-    // int setAtkVar(int value);
-    // //0.5 -> 1.0
-    // float setAcc(float value);
-    // //0.0 - > 0.25, less than acc
-    // float setAccDecay(float value);
 public:
     Character();
     Character(char symbol, int row_coord, int col_coord, int spd, int max_health, int range, int damage, int damage_var, float accuracy, float accuracy_decay, int strength);
 
+    //change the coordinates to the given point
     void setCoords(int row_coord, int col_coord);
+    //return true if the given point is less distance from the character than move
     bool canMove(int row_coord, int col_coord) const;
 
+    //return true if the given point is less distance from the character than atk_range
     bool canAttack(int target_row, int target_col) const;
-    int rollAttack(int target_row, int target_col) const; //returns -1 if the attack misses, NEED TO ACCOUNT FOR STRENGTH!!!
-    int receiveAttack(int dmg); //returns cur_hp *after* taking damage
+    
+    //roll an attack targeted at whatever is at a given point
+    //generate a number for damage using strength, atk, and atk_var
+    //checks additionally if the attack would hit, and returns -1 on a miss
+    int rollAttack(int target_row, int target_col) const;
+    //subtracts the input damage from cur_hp and returns the new value of cur_hp
+    //if dmg is negative, does not change cur_hp
+    int receiveAttack(int dmg);
 
     int getRow() const;
     int getCol() const;

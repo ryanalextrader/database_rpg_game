@@ -26,6 +26,7 @@ bool Player::updateCoords(int row_coord, int col_coord) {
 }
 
 bool Player::levelUp(string stat, int amount){
+    //check which stat to increase, then increase it
     if(amount > 0){
         if(stat == "speed"){
             move += amount;
@@ -46,6 +47,7 @@ bool Player::levelUp(string stat, int amount){
 }
 
 bool Player::consume(int index) {
+    //index is a greater value than the number of items in the inventory
     if(index > inventory.size()) {
         return false;
     }
@@ -62,16 +64,19 @@ bool Player::consume(int index) {
         consumeAgain();
     }
     //consume the item
+        //heal
     cur_hp += inv_cursor->getHeal();
     if(cur_hp > max_hp) {
         cur_hp = max_hp;
     }
+        //buffs
     consume_str = inv_cursor->getStrB();
     consume_move = inv_cursor->getMoveB();
     consume_dur = inv_cursor->getDur();
-
+        //get rid of the used item
     inventory.erase(inv_cursor);
 
+    //apply buffs to the player
     str += consume_str;
     move += consume_move;
     return true;
@@ -85,6 +90,8 @@ int Player::consumeTimer() {
         consume_move = 0;
     } else if(consume_dur == 1) {
         consume_dur--;
+        //we reach duration 0 in this call, reset potion effects
+            //otherwise, a 3 duration potion lasts 4 turns
         str -= consume_str;
         move -= consume_move;
         consume_str = 0;
@@ -96,6 +103,7 @@ int Player::consumeTimer() {
 }
 
 bool Player::addItem(Consumable item) {
+    //add an item to the inventory if possible, and return whether or not the operation was succesful
     if(inventory.size() < INVENTORY_CAP) {
         inventory.push_back(item);
         return true;
@@ -104,6 +112,7 @@ bool Player::addItem(Consumable item) {
 }
 
 bool Player::replaceItem(Consumable n_item, int index) {
+    //make sure we are within the inventory scope
     if(index > inventory.size()) {
         return false;
     }
@@ -115,6 +124,7 @@ bool Player::replaceItem(Consumable n_item, int index) {
         inv_crsr++;
     }
 
+    //add the new item, remove the old item
     inv_crsr = inventory.insert(inv_crsr, n_item);
     inv_crsr++;
     inventory.erase(inv_crsr);
@@ -123,6 +133,7 @@ bool Player::replaceItem(Consumable n_item, int index) {
 }
 
 void Player::consumeAgain() {
+    //to avoid managing simultaneous buffs, reset potion effects upon a re-buff
     str -= consume_str;
     move -= consume_move;
 }
@@ -146,6 +157,16 @@ string Player::getWeaponClass() const{
 }
 
 vector<string> Player::getConsumeEffects() const {
+    //formatted as:
+    /*
+    +[] str
+    +[] move
+    [] turns left
+
+    OR
+
+    NO BUFFS
+    */
     vector<string> effects;
     if(consume_dur > 0) {
         if(consume_str != 0) {
@@ -181,9 +202,9 @@ string Player::getInventoryList() {
         return "No items in inventory!";
     }
 
-    string inv_list;
+    string inv_list; //string to hold item effects
     list<Consumable>::iterator inv_crsr = inventory.begin();
-    int num_items = 1;
+    int num_items = 1; //add indices (starting at 1 for UI)
 
     while(inv_crsr != inventory.end()) {
         inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
@@ -204,20 +225,6 @@ string Player::getInventoryList() {
         num_items++;
     }
 
-    // inv_list += "[" + std::to_string(num_items) + "]" + inv_crsr->getName() + ": " + inv_crsr->getDesc() + "\n    ";
-    // if(inv_crsr->getHeal() != 0)
-    //     inv_list += "heal: " + inv_crsr->getHeal();
-    // if(inv_crsr->getDur() != 0) {
-    //     if(inv_crsr->getHeal() != 0)
-    //         inv_list += ", ";
-    //     if(inv_crsr->getStrB() != 0)
-    //         inv_list += "str: " + std::to_string(inv_crsr->getStrB()) + ", ";
-    //     if(inv_crsr->getMoveB() != 0)
-    //         inv_list += "move: " + std::to_string(inv_crsr->getMoveB()) + ", ";
-
-    //     inv_list += "dur: " + inv_crsr->getDur();
-    // }
-
 //inv_list appearance: (these are examples, and not indicative of real items in the game)
 /*
 [1] steak: a juicy, magical slab of meat
@@ -234,10 +241,12 @@ string Player::getInventoryList() {
 }
 
 int Player::getItemId(int index) {
+    //index is not in inventory
     if(index > inventory.size() || index < 1) {
         return -1;
     }
 
+    //find the item, return the id
     list<Consumable>::iterator inv_crsr = inventory.begin();
     for(int i = 1; i < index; i++) {
         inv_crsr++;
