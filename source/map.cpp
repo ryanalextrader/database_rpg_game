@@ -204,7 +204,7 @@ void Map::createPlayer() {
     int atk_var = wep_var * ench_var;
     float acc = wep_acc * ench_acc;
     if(acc > 1.000) { //ensure accuracy is less than 1
-        acc = 1.000
+        acc = 1.000;
     }
     float acc_decay = wep_decay * ench_decay;
 

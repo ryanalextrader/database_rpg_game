@@ -431,11 +431,13 @@ def attempt_add_consumable_to_inventory(save_id, consumable_id):
 
     crsr.close() #clean up
 
+#outputs a random consumable to the runtime_data.txt file
 def get_new_consumable(save_id):
     query = []
     #connect to mysql dbms
     db = getConnection()
-    crsr = db.cursor()
+    crsr = db.cursor() #create cursor to query database
+    #query to receive a random consumable
     sql = "SELECT * "
     sql += "FROM consumable "
     sql += "ORDER BY Rand() "
@@ -443,28 +445,31 @@ def get_new_consumable(save_id):
 
     crsr.execute(sql) #execute the query
 
-    consumable_id = 0
-    row = crsr.fetchone()
-    consumable_id = row[0]
+    row = crsr.fetchone() #query returns a single row so only need to fetch one tuple
+    consumable_id = row[0] #store single attribute returned from query for later use
+    #add attribute from query to query list
     row_string = ''
     for att in row:
         row_string += str(att) + ';'
     query.append(row_string)
     
-    attempt_add_consumable_to_inventory(save_id, consumable_id)
+    attempt_add_consumable_to_inventory(save_id, consumable_id) #try to add the generated consumable to player's inventory 
     
     #write to file
     file = open("data\\runtime_data.txt", "w")
-
     for line in query:
         file.write(line + "\n")
     
     #clean up
     file.close()
     crsr.close()
-    return query
 
 #called with argv[1] = 7 argv[2] = <save_file> argv[3] = <reward_type>
+#generate a reward for the player depending on the value of reward_type passed in
+#   reward_type = 1: weapon
+#   reward_type = 2: consumable
+#   reward_type = 3: stat boost (no queries associated, implemented in c++ files)
+#   reward_type = 4: character unlock
 def get_reward(save_id, reward_type):
     if reward_type == 1:
         get_new_weapon()

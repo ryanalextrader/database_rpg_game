@@ -1,3 +1,4 @@
-2;
-1;WARRIOR;60;5;4;longsword;
-2;RANGER;56;3;5;longbow;
+4;10;10;dungeon;3;
+SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;
+SPIDER;An abnormally large, venomous arachnid;7;4;2;1;4;0.9;0.0;m;15;0;1;1;
+KING GOOP;A massive amount of sludge. Is it one big slime, or many smaller ones?;5;11;3;2;3;0.9;0.1;O;29;0;1;1;1;
