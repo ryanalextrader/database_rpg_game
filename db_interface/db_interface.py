@@ -292,6 +292,18 @@ def delete_save_file(save_id):
     db.commit() #confirm table manipulation
     crsr.close() #clean up
 
+def delete_inventory(save_id):
+    #connect to mysql dbms
+    db = getConnection()
+    crsr = db.cursor() #create cursor for querying the database
+
+    #query to remove tuples in inventory with save = save_id
+    sql = "DELETE FROM inventory WHERE save = " + str(save_id)
+    crsr.execute(sql) #execute query
+    db.commit() #confirm table manipulation
+    crsr.close() #clean up
+
+
 #reward queries /////////////////////////////////////////////////////////////////////////////
 
 #helper function for ulock_character
@@ -479,9 +491,9 @@ def get_reward(save_id, reward_type):
     elif reward_type == 4:
         unlock_character(save_id)
 
-#called with 
+#called with argv[1] = 9, argv[2] = save_id, argv[3] = deletion_consumable_id, argv[4] = new_consumable_id
 def swap_consumables(save_id, deletion_consumable_id, new_consumable_id):
-    id = get_inventory_id(save_id, deletion_consumable_id)
+    id = get_inventory_id(save_id, deletion_consumable_id) #get the id of the tuple in inventory whose save_id matches
     if id != -1:
         #connect to mysql dbms
         db = getConnection()
@@ -564,7 +576,6 @@ def select_map(save_id, just_loaded):
 
     crsr.execute(sql) #execute the query
 
-    
     row = crsr.fetchone()
     id = row[0]
     num_mons = row[7]
@@ -676,6 +687,7 @@ def choose_query():
         start_new_save(int(sys.argv[2]))
     elif int(sys.argv[1]) == 4:
         delete_save_file(int(sys.argv[2]))
+        delete_inventory(int(sys.argv[2]))
     elif int(sys.argv[1]) == 5:
         load_save_file(int(sys.argv[2]))
     elif int(sys.argv[1]) == 6:
