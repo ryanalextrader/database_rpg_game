@@ -7,6 +7,9 @@
 #include "..\headers\consInteraction.h"
 #include "windows.h"
 
+//.ignore(std::numeric_limits<std::streamsize>::max()) FROM:
+//https://stackoverflow.com/questions/477408/ifstream-end-of-line-and-move-to-next-line
+
 void Map::changeColor(int row_coord, int col_coord) const{
     // color for player token when player needs to move
     if(grid[row_coord][col_coord] == plr.getToken() && phase == 0){
@@ -120,8 +123,8 @@ void Map::createNewMap(){
 
     //read data for all the monsters
     for(int i = 0; i < num_monsters; i++) {
-        // from: https://stackoverflow.com/questions/477408/ifstream-end-of-line-and-move-to-next-line
-        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //see citation at top of file
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to next line of file
 
         mnstr.push_back(readMonster(data, rows, cols));
     }
@@ -177,7 +180,8 @@ void Map::createPlayer() {
     int str = readNum(data);
     int spd = readNum(data);
 
-    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    //see citation at top of the file
+    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to next line in file
 
     //read weapon data
     string wep_name = readEntry(data);
@@ -188,7 +192,8 @@ void Map::createPlayer() {
     float wep_acc = stof(readEntry(data));
     float wep_decay = stof(readEntry(data));
 
-    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    //see citation at the top of the file
+    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to next line of file
 
     //read enchant data
     string ench_name = readEntry(data);
@@ -222,7 +227,8 @@ void Map::createInventory(fstream& data) {
         return;
     }
     for(int i = 0; i < num_items; i++) {
-        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //see citation at the top of the file
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to the next line in file
         plr.addItem(readConsumable(data));
     }
 }
@@ -253,7 +259,8 @@ void Map::unlockList() {
     //read every character line in the file
     cout << "Unlocked characters:" << endl;
     for(int i = 0; i < num_unlocked; i++) {
-        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        // see citation at the top of the file
+        data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to the next line in file
         id_list.push_back(readNum(data));
         cout << '[' << i+1 << "] " << readCharacter(data) << "\n" << endl;
     }
@@ -292,7 +299,8 @@ bool Map::saveList() {
     for(int i = 0; i < 9; i++) {
         //run til eof
         if(i < num_saves) {
-            data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            //see citation at the top of the file
+            data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to next line of file
             //id, name, max_hp, cur_hp, str, spd
             id_list.push_back(readNum(data));
             cout << "[" << i+1 << "] " << readSave(data);
@@ -352,7 +360,8 @@ void Map::deleteSave() {
     cout << "Delete a save:" << endl;
     for(int i = 0; i < 9; i++) {
         if(i < num_saves) {
-            data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            //see citation at the top of the file
+            data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to the next line in file
             id_list.push_back(readNum(data));
             cout << "[" << i+1 << "] " << readSave(data);
             readEntry(data); //burn wep_id and ench_id to get to level
@@ -428,7 +437,8 @@ void Map:: generateWeapon() {
     float wep_acc = stof(readEntry(data));
     float wep_decay = stof(readEntry(data));
 
-    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    //see citation at the top of the file
+    data.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); //skip to the next line in file
 
     //read enchant stats
         //id;name;atk;atk_var;acc;acc_decay
