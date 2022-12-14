@@ -553,13 +553,13 @@ void Map::generateCharReward() {
 }
 
 void Map::printMonstBlock(){
-    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
+    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol()); //check if/which monster the cursor is on
     cout << string(2000, ' '); //clear the monster description line
     setCursorPos(0, 1 + grid.size()); //move to the end of the grid
     cout << endl << activity << endl; //activity line
     block_width = 15;
-    cout << "+" << string(block_width, '-') << "+" << endl;
-    if(mnstr_index >=0){
+    cout << "+" << string(block_width, '-') << "+" << endl; //top of box
+    if(mnstr_index >=0){ //there is a monster selected
     //name
         cout << "|" << setw(block_width) << mnstr[mnstr_index].getName() << "|" << endl;
     //hp
@@ -573,11 +573,13 @@ void Map::printMonstBlock(){
         cout << "|" << setw(block_width) << m_threat_range << "|" << endl;
     }
     else{
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 4; i++){ //there is no monster selected
             cout << "|" << setw(block_width + 1) << "|" << endl;
         }
     }
-    cout << "+" << string(block_width, '-') << "+" << endl;
+    cout << "+" << string(block_width, '-') << "+" << endl; //bottom of box
+    
+    //monster description
     if(mnstr_index >= 0)
         cout << mnstr[mnstr_index].getDesc();
     else
@@ -616,18 +618,27 @@ void Map::printWeaponBlock(string weapon_name, string weapon_class, int atk_rang
     clearScreen();
     setTextColor(15);
     cout << "You found a new weapon!" << endl;
+    //top of box
     cout << "+" << string(2 * block_width, '-') << "++" << string(2 * block_width, '-') << "+" << endl;
+    //current, new
     cout << "|" << setw(2 * block_width) << "CURRENT WEAPON" << "||" << setw(2 * block_width) << "NEW WEAPON" << "|" << endl;   
+    //weapon names
     cout << "|" << setw(2 * block_width) << plr.getWeaponName() << "||" << setw(2 * block_width) << weapon_name << "|" << endl;
+    //weapon class (melee/ranged)
     cout << "|" << setw(2 * block_width) << plr.getWeaponClass() << "||" << setw(2 * block_width) << weapon_class << "|" << endl;
+    //attack values
     string attack = "Attack: " + to_string(plr.getAtk());
     cout << "|" << setw(2 * block_width) << attack << "||" << setw(2 * block_width) << "Attack: " + to_string(atk) << "|" << endl;
+    //range
     string range = "Range: " + to_string(plr.getAtkRange());
     cout << "|" << setw(2 * block_width) << range << "||" << setw(2 * block_width) << "Range: " + to_string(atk_range) << "|" << endl;
+    //attack variance
     string attack_var = "Attack Var: " + to_string(plr.getAtkVar());
     cout << "|" << setw(2 * block_width) << attack_var << "||" << setw(2 * block_width) << "Attack Var: " + to_string(atk_var) << "|" << endl;
+    //accuracy
     string accuracy = "Accuracy: " + to_string(plr.getAcc()).substr(0, 4); // substr for rounding to two decimal places
     cout << "|" << setw(2 * block_width) << accuracy << "||" << setw(2 * block_width) << "Accuracy: " + to_string(acc).substr(0,4) << "|" << endl;
+    //accuracy rate of decay
     string accuracy_decay = "Decay: " + to_string(plr.getAccRate()).substr(0, 4); // substr for rounding to two decimal places
     cout << "|" << setw(2 * block_width) << accuracy_decay << "||" << setw(2 * block_width) << "Decay: " + to_string(acc_decay).substr(0,4) << "|" << endl;
     cout << "+" << string(2 * block_width, '-') << "++" << string(2 * block_width, '-') << "+" << endl;
@@ -644,18 +655,24 @@ void Map::printStatBuffBlock(){
 }
 
 void Map::printPotionBuffBlock(){
+    //clear monster description
     cout << string(200, ' ');
+    //move to end of grid
     setCursorPos(0, 1 + grid.size());
+    //activity line
     cout << endl << activity << endl;
+    //current buffs affecting the player
     vector<string> buffs = plr.getConsumeEffects();
     cout << "+" << string(block_width, '-') << "+" << endl;
     if(!plr.isBuffed()) {
+        //no buffs, print "NO BUFFS"
         cout << "|" << setw(block_width) << buffs[0] << "|";
         for(int i = 0; i < 4; i++) {
             cout << "|" << setw(block_width) << " " << "|" << endl;
         }
     }
     else{
+        //print all the buffs
         cout << "|" << setw(block_width) << "BUFFS" << "|" << endl;
         for(int i = 0; i < 3; i++){
             cout << "|" << setw(block_width) << buffs[i] << "|" << endl;
@@ -666,33 +683,41 @@ void Map::printPotionBuffBlock(){
 
 int Map::getThemeColor() {
     if(theme == "dungeon")
+    //grey
         wall_color = 8;
     else if(theme == "forest")
+    //green
         wall_color = 2;
     else if(theme == "cave")
+    //red
         wall_color = 4;
     else
+    //purple
         wall_color = 5;
 
     return wall_color;
 }
 
 string Map::readTheme(fstream& data) {
+    //read the theme and set the member
     theme = readEntry(data);
     return theme;
 }
 
 int Map::readNum(fstream& data) {
+    //convert an entry to an int
     return stoi(readEntry(data));
 }
 
 string Map::readEntry(fstream& data) {
+    //parse by `;`
     string temp;
     getline(data, temp, ';');
     return temp;
 }
 
 Monster Map::readMonster(fstream& data, int rows, int cols) {
+    //read the monster stats
     string name = readEntry(data);
     string desc = readEntry(data);
     int sight = readNum(data);
@@ -708,6 +733,7 @@ Monster Map::readMonster(fstream& data, int rows, int cols) {
     int s_beh = readNum(data);
     int p_beh = readNum(data);
 
+    //put the stats into a monster
     return Monster(name, desc, rand() % cols, rand() % rows, token, sight, p_beh, s_beh, d_beh, move, hp, atk_range, atk, atk_var, acc, acc_decay);
 //file
     //name;description;sight_range;atk_strength;atk_var;atk_range;move;acc;acc_decay;symbol;max_hp;default_beh;blind_beh;provoked_beh;
@@ -719,6 +745,7 @@ Monster Map::readMonster(fstream& data, int rows, int cols) {
 }
 
 Consumable Map::readConsumable(fstream& data) {
+    //read the consumable stats
     int id = readNum(data);
     string name = readEntry(data);
     string desc = readEntry(data);
@@ -727,27 +754,32 @@ Consumable Map::readConsumable(fstream& data) {
     int str = readNum(data);
     int dur = readNum(data);
 
+    //put the consumable stats into a consumable
     return Consumable(name, desc, heal, str, spd, dur, id);
 }
 
 string Map::readCharacter(fstream& data) {
+    //read the relevant stats from the file
     string character_string = readEntry(data) + ": ";
     character_string += readEntry(data) + " hp, ";
     character_string += readEntry(data) + " str, ";
     character_string += readEntry(data) + " spd. ";
     character_string += "Starts with a rusty " + readEntry(data);
     
+    //return the stats as a string
     return character_string;
 }
 
 string Map::readSave(fstream& data) {
-    string save_string = readEntry(data) + ": ";
+    //read the relevant stats
     //name, max_hp, cur_hp, str, spd
+    string save_string = readEntry(data) + ": ";
     string max_hp = readEntry(data);
     save_string += readEntry(data) + '/' + max_hp + " hp, ";
     save_string += readEntry(data) + " str, ";
     save_string += readEntry(data) + " spd";
 
+    //return the stats as a string
     return save_string;
 }
 
@@ -789,12 +821,14 @@ void Map::phaseAct(bool skip){
     
     //phase 0, player move; phase 1, player attack, monsters
     if(skip){ //skip player action
-        if(phase == 0){
+        if(phase == 0){ //skip move
             phase++;
         }
-        else if(phase == 1){
+        else if(phase == 1){ //skip attack
+            //monsters still act
             handleMonsters();
             if(plr.getCurHp() <= 0) {
+                //you lose at 0 hp
                 activity = "YOU DIED! GAME OVER!";
                 printGrid();
                 game_over = true;
@@ -803,17 +837,19 @@ void Map::phaseAct(bool skip){
             phase = 0;
         }
     }
-    else if(phase == 0){
+    else if(phase == 0){ //player move
         if(movePlayer()){
             phase++;
         }
     }
-    else if (phase == 1){
+    else if (phase == 1){ //player attack
         if(playerAttack()){
             printGrid();
             Sleep(1500);
+            //monsters act
             handleMonsters();
             if(plr.getCurHp() <= 0){
+                //you lose at 0 hp
                 activity = "YOU DIED! GAME OVER!";
                 printGrid();
                 game_over = true;
@@ -823,6 +859,7 @@ void Map::phaseAct(bool skip){
         }
         //game state
         if(mnstr.empty()) {
+            //create a new room and a reward after completing a room
             activity = "ALL MONSTERS VANQUISHED! (Press Space to Continue)";
             printGrid();
             level++;
@@ -833,14 +870,14 @@ void Map::phaseAct(bool skip){
 
             generateReward();            
             
-            plr.consumeAgain();
+            plr.consumeAgain(); //clear any buffs (prevents permanent stat buffs via reloading saves)
 
             plr.floorHeal();
             //update save file
             //"<max_hp>,<cur_hp>,<str>,<spd>"
             system(("python db_interface\\db_interface.py 8 " + to_string(save_id) + " " + to_string(plr.getMaxHp()) + "," + to_string(plr.getCurHp()) + "," + to_string(plr.getStr()) + "," + to_string(plr.getMove())).c_str());
             
-            //delete all used items
+            //delete all used items from the database inventory
             for(int i = 0; i < used_items.size(); i++) {
                 system(("python db_interface\\db_interface.py 10 " + to_string(save_id) + " " + to_string(used_items[i])).c_str());
             }
@@ -853,6 +890,7 @@ void Map::phaseAct(bool skip){
             new_map_created = true;
         }
     }
+    //activity text
     if(phase == 0 && !new_map_created && !game_over){
         activity = "Move when ready.";
     }
@@ -870,28 +908,29 @@ bool Map::movePlayer() {
         }
     }
 
-    grid[plr.getRow()][plr.getCol()] = bkgrnd;
-    if(plr.updateCoords(crsr.getRow(), crsr.getCol())) {
+    grid[plr.getRow()][plr.getCol()] = bkgrnd; //old location
+    if(plr.updateCoords(crsr.getRow(), crsr.getCol())) { //attempt to move
         hasMoved = true;
     }
-    grid[plr.getRow()][plr.getCol()] = plr.getToken();
+    grid[plr.getRow()][plr.getCol()] = plr.getToken(); //new location
 
     return hasMoved;
 }
 
 bool Map::playerAttack(){
-    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
-    if(plr.canAttack(crsr.getRow(), crsr.getCol()) && mnstr_index >= 0){
+    int mnstr_index = findMonster(crsr.getRow(), crsr.getCol()); //the monster we want to attack
+    if(plr.canAttack(crsr.getRow(), crsr.getCol()) && mnstr_index >= 0){ //in range
+        //roll damage and damage the monster
         int damage = plr.rollAttack(crsr.getRow(), crsr.getCol());
         mnstr[mnstr_index].receiveAttack(damage);
-        if(damage < 0) {
+        if(damage < 0) { //negative damage, miss
             activity = "Your attack missed!";
-        } else if(mnstr[mnstr_index].isDead()){
+        } else if(mnstr[mnstr_index].isDead()){ //killed the monster
             activity = "You killed the " + mnstr[mnstr_index].getName() + "!";
             grid[mnstr[mnstr_index].getRow()][mnstr[mnstr_index].getCol()] = bkgrnd;
             mnstr.erase(mnstr.begin() + mnstr_index);
         }
-        else{
+        else{ //damage, does not kill
             if(plr.getWeaponClass() == "melee"){
                 activity = "You swung your ";
             }
@@ -900,20 +939,23 @@ bool Map::playerAttack(){
             }
             activity += (plr.getWeaponName() + " and dealt " + to_string(damage) + " damage to the " + mnstr[mnstr_index].getName() + "!"); 
         }
-        return true;
+        return true; //attack happened
     }
     else{
-        return false;
+        return false; //attack did not happen
     }
 }
 
 void Map::handleMonsters(){
+    //tick down potion duration
     plr.consumeTimer();
 
+    //have each monster move and attack
     bool held = false;
     for(int i = 0; i < mnstr.size(); i++){
         if(!mnstr[i].isDead()) {
             moveMonster(i);
+            //highlight the current monster
             active_mons_coord[0] = mnstr[i].getRow();
             active_mons_coord[1] = mnstr[i].getCol();
             printGrid();
@@ -928,6 +970,7 @@ void Map::handleMonsters(){
 }
 
 void Map::moveMonster(int index) {
+    //determine where to move to based on behavior
     mnstr[index].setDest(plr, grid[0].size(), grid.size());
 
     //activity feed
@@ -940,7 +983,7 @@ void Map::moveMonster(int index) {
     }
 
     //move based on behavior
-    grid[mnstr[index].getRow()][mnstr[index].getCol()] = bkgrnd;
+    grid[mnstr[index].getRow()][mnstr[index].getCol()] = bkgrnd; //old location
     mnstr[index].updateCoords();
 
     //handle any overlaps
@@ -954,19 +997,21 @@ void Map::moveMonster(int index) {
             }
         }
     }
-    grid[mnstr[index].getRow()][mnstr[index].getCol()] = mnstr[index].getToken();
+    grid[mnstr[index].getRow()][mnstr[index].getCol()] = mnstr[index].getToken(); //new location
 }
 
 void Map::monsterAttack(int index) {
+    //attack if the player is within the monster's range
     if(mnstr[index].canAttack(plr.getRow(), plr.getCol())) {
+        //roll damage against the player
         int dmg = mnstr[index].rollAttack(plr.getRow(), plr.getCol());
         plr.receiveAttack(dmg);
         
-        if(dmg < 0) {
+        if(dmg < 0) { //negative, miss
             activity = mnstr[index].getName() + " tried to attack you but missed!";
-        } else if(dmg == 0) {
+        } else if(dmg == 0) { //0 damage
             activity = "You deflected " + mnstr[index].getName() + "'s attack!";
-        } else {
+        } else { //damage dealt
             activity = mnstr[index].getName() + " attacked you for " + to_string(dmg) + " damage!";
         }
     }
@@ -974,22 +1019,27 @@ void Map::monsterAttack(int index) {
 
 void Map::inventorySelection(){
     clearScreen();
+    //print inventory
     cout << "Select an item to use: " << endl;
     cout << plr.getInventoryList() << endl;
     cout << "[0] Return to game" << endl;
+    
+    //read user input
     bool input = false;
     while(!input){
         for(int i = 1; i <= plr.getInvSize(); i++){
             if(GetAsyncKeyState('0' + i) & 0x8000){
-                used_items.push_back(plr.getItemId(i)); //keep a record of used items in order to update database at end of floor
-                //if we delete here, then quitting out in the middle of a floor actively harms the player
+                //keep a record of used items in order to update database at end of floor
+                //if we were to delete items here, then quitting out in the middle of a floor would actively harm the player
+                //they would permanently lose any items used
+                used_items.push_back(plr.getItemId(i));
                 if(plr.consume(i)){
                     input = true;
                 }
             }
         }
         if(GetAsyncKeyState('0') & 0x8000){
-            input = true;
+            input = true; //0 exits back without consuming any items
         }
     }
     clearScreen();
@@ -1013,9 +1063,9 @@ bool Map::getGameOver() const{
 }
 
 void Map::printGrid() {
-
     setCursorPos(0, 0);
 
+    //walls
     setTextColor(wall_color);
     for(int i = 0; i < 2 * (grid[0].size() + 2) - 1; i++) {
         cout << "#";
@@ -1025,11 +1075,12 @@ void Map::printGrid() {
 
     bool cursor_edge = false;
     for(int i = 0; i < grid.size(); i++){
+        //wall
         setTextColor(wall_color);
         cout << "#";
         for(int j = 0; j < grid[0].size(); j++){
             changeColor(i, j);
-            if(i == crsr.getRow() && j == crsr.getCol()) {
+            if(i == crsr.getRow() && j == crsr.getCol()) { //cursor
                 if(grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd && plr.canAttack(i, j)){
                     setTextColor(14);
                     cout << "[";
@@ -1041,13 +1092,13 @@ void Map::printGrid() {
                 else{
                     cout << "[" << grid[i][j] << "]"; 
                 }
-                cursor_edge = true;
+                cursor_edge = true; //since cursor prints after a map tile, don't print a space after this grid index
             }
             else{
-                if(!cursor_edge && !(plr.canAttack(i, j) && grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd)){
+                if(!cursor_edge && !(plr.canAttack(i, j) && grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd)){ //monster out of range
                     cout << " ";
                 }
-                else if(!cursor_edge && plr.canAttack(i, j) && grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd){
+                else if(!cursor_edge && plr.canAttack(i, j) && grid[i][j] != plr.getToken() && grid[i][j] != bkgrnd){ //monster within range
                     cout << "!";
                 }
                 else{
@@ -1056,23 +1107,25 @@ void Map::printGrid() {
                 cout << grid[i][j];
             }
         }
-        if(!cursor_edge){
+        if(!cursor_edge){ //print a space if not immediately after the cursor
             cout << " ";
         }
+        //wall
         setTextColor(wall_color);
         cout << "#\n";
         cursor_edge = false;
     }
     
+    //wall
     setTextColor(wall_color);
     for(int i = 0; i < 2 * (grid[0].size() + 2) - 1; i++) {
         cout << "#";
     }
     if(crsr.getRow() == plr.getRow() && crsr.getCol() == plr.getCol()){
-        printPotionBuffBlock();
+        printPotionBuffBlock(); //print potion if on the player
     }
     else{
-        printMonstBlock();
+        printMonstBlock(); //otherwise, try to print monster (if possible)
     }
     /*
     +__ str\n

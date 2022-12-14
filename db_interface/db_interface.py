@@ -306,7 +306,7 @@ def delete_inventory(save_id):
 
 #reward queries /////////////////////////////////////////////////////////////////////////////
 
-#helper function for ulock_character
+#helper function for unlock_character
 #returns a list of length one whose element is the id for the row in the character table
 #   that would be the next unlock for a specific save
 def get_next_unlock_id(save_id):
