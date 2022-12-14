@@ -417,6 +417,8 @@ void Map:: generateWeapon() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
+    //read weapon stats
+        //id;name;class;atk;atk_var;range;acc;acc_decay
     int wep_id = readNum(data);
     string wep_name = readEntry(data);
     string weapon_class = readEntry(data);
@@ -428,6 +430,8 @@ void Map:: generateWeapon() {
 
     data.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
+    //read enchant stats
+        //id;name;atk;atk_var;acc;acc_decay
     int ench_id = readNum(data);
     string ench_name = readEntry(data);
     float ench_atk = stof(readEntry(data));
@@ -437,16 +441,19 @@ void Map:: generateWeapon() {
 
     data.close();
 
+    //create the weapon using the enchant and weapon stats
     string weapon_name = ench_name + " " + wep_name;
     int atk = wep_atk * ench_atk;
     int atk_var = wep_var * ench_var;
     float acc = wep_acc * ench_acc;
     float acc_decay = wep_decay * ench_decay;
 
+    //accuracy over 1.00 doesn't make sense
     if(acc > 1.000) {
         acc = 1.000;
     }
 
+    //prompt user to swap weapons
     printWeaponBlock(weapon_name, weapon_class, atk_range, atk, atk_var, acc, acc_decay);
     cout << "Do you wish to take this weapon and replace your current weapon with it? (Y/N)" << endl;
     
@@ -469,17 +476,19 @@ void Map::generateItem() {
     fstream data;
     data.open(DATA_FILE, fstream::in);
 
+    //hold the item to add
     Consumable item(readConsumable(data));
 
     data.close();
 
     clearScreen();
-    bool item_state = plr.addItem(item);
+    bool item_state = plr.addItem(item); //if this is false, the user's inventory is full and we need to swap out an item
     bool input = false;
     cout << "You received:\n" << item.getStats() << endl;
 
     Sleep(1500);
     if(!item_state) {
+        //swap an item
         cout << "Which item would you like to replace?" << endl;
         cout << plr.getInventoryList() << "\n[0] keep current items" << endl;
         while(!input){
@@ -545,9 +554,9 @@ void Map::generateCharReward() {
 
 void Map::printMonstBlock(){
     int mnstr_index = findMonster(crsr.getRow(), crsr.getCol());
-    cout << string(2000, ' ');
-    setCursorPos(0, 1 + grid.size());
-    cout << endl << activity << endl;
+    cout << string(2000, ' '); //clear the monster description line
+    setCursorPos(0, 1 + grid.size()); //move to the end of the grid
+    cout << endl << activity << endl; //activity line
     block_width = 15;
     cout << "+" << string(block_width, '-') << "+" << endl;
     if(mnstr_index >=0){
