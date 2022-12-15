@@ -10,6 +10,7 @@ __W A S D__ to select a tile <br/>
 __[SPACE]__ to act (move / attack) <br/>
 __E__ to skip your action <br/>
 __Q__ to open your inventory <br/>
+__[ESC]__ to quit<br/>
 <br/>
 Your damage on any attack is calculated as: str + atk<br/>
 The atk value is your average atk value, and certain weapons have greater ranges than others<br/>

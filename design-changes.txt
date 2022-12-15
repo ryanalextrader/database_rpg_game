@@ -1,0 +1,45 @@
+forgot these in the presentation
+
+DESIGN CHANGES
+
+originally intended for attack_speed to be an attribute of weapons and monsters
+    higher attack speed attacks first, with the faster one maybe taking multiple attacks if the difference was great enough 
+    this was changed due to how we ended up making the combat system, as the target does not hit back after the player attacks them
+
+enchant being a flat bonus
+    our original intent was for the enchant value to just be like a flat bonus to the attack value, rather than a multiplier
+    this was changed to be a multiplier because the flat value was also tied to the original attack_speed idea, and without that the multiplier seemed more fitting
+
+room events
+    certain rooms would be rest areas, or have a shop
+    in part due to time constraints, these were cut. The shop in particular was something we wanted but ended up not developing
+
+equipment
+    items that had effects outside of stat buffs/healing (e.g. grappling hook that moves your character directly to a wall)
+    this would be really hard to program in a smart, efficient manner while also not necessarily adding enough to be considered "worth it"
+
+party/controlling multiple characters
+    creating a more tactical game where the player controls multiple units would have been really fun and cool
+    we ended up cutting this to ensure that the project would fit in time constraints after we figured how this would add unnecessary difficulty to programming the game
+
+
+FUTURE PLANS
+
+store
+    although we cut it due to time, if we were to continue working, the shop would be a high priority for adding next
+
+branching paths
+    allowing the player to choose from a variety of rooms based on what rewards the player wants adds more agency to the player in ensuring they have a run that suits them and prevents them from getting bottlenecked on a particular resource (i.e. not getting any new weapons and using the starter rusty weapon an entire run)
+
+more consumables
+    simply adding more consumables to the database would allow for a more fun, varied experience and make inventory management more necessary
+
+more floors
+    allowing the game to go longer or have more variety in the existing floors creates more encounters and increases replayability
+
+balancing
+    currently, the game is very unbalanced: monsters deal too much damage or have too much hp, which makes progressing in the game difficult
+
+adding more character classes/differentiating the characters more
+    having more unlockables would increase replayability
+    it could be possible to add a sort of "spell list" or other special moves using inheritance to create more variety in how the player engages with each class and create more playstyles
