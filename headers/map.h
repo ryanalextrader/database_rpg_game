@@ -196,7 +196,7 @@ class Map{
         //relevant info: monster/stat and player blocks, activity line
         void printGrid();
         //print the game title in big funny letters
-        //big funny letters from: [url]
+        //big funny letters from: https://patorjk.com/software/taag/#p=display&f=Graffiti&t=Type%20Something%20
         void printTitle() const;
 };
 #endif

@@ -2,6 +2,10 @@ import sys
 import random
 import pymysql
 
+#Note: A lot of the queries below output data to a file called runtime_data.txt. The C++
+#script reads from this file, so the file is used as a way to transfer data between the python
+#and database scripts
+
 #creates a connection to the database and returns said connection
 def getConnection():
     db = pymysql.connect(host='rpggame.ctskhbc7cwkq.us-east-2.rds.amazonaws.com', user='admin', password='saul22gone', database='rpggame')
