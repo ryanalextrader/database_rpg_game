@@ -509,11 +509,15 @@ def swap_consumables(save_id, deletion_consumable_id, new_consumable_id):
         crsr.close()#clean up
 
 #update map queries/////////////////////////////////////////////////////////////////////////
+#generates a list of num_monsters number of monsters based on the location of save with save_id
+#   list will contain max_mons_types number of different types of monsters
+#   if boss_fight, then add a boss to the list of monsters 
 def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     query = []
     #connect to mysql dbms
     db = getConnection()
-    crsr = db.cursor()
+    crsr = db.cursor() #create cursor for querying database 
+    #query to get info on monsters based on whether they can spawn at map that the save with save_id is on 
     sql = "SELECT m.name, m.description, m.sight_range, m.atk_strength, m.atk_var, m.atk_range, m.move, m.acc, m.acc_decay, m.symbol, m.max_hp, m.default_beh, m.blind_beh, m.provoked_beh "
     sql += "FROM monster m, "
     sql += "(SELECT s.level, ma.room_theme "
@@ -524,15 +528,18 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     sql += "LIMIT " + str(max_mons_types)
 
     crsr.execute(sql) #execute the query
+    #append all attributes returned from query to query list
     for row in crsr:
         row_string = ''
         for att in row:
             row_string += str(att) + ';'
         query.append(row_string)
 
+    #append random copies of items in query list to reach the number of monsters needed
     while len(query) < num_monsters:
         query.append(random.choice(query))
 
+    #if a boss fight is needed, get info on the appropriate boss
     if boss_fight:
         sql = "SELECT m.name, m.description, m.sight_range, m.atk_strength, m.atk_var, m.atk_range, m.move, m.acc, m.acc_decay, m.symbol, m.max_hp, m.default_beh, m.blind_beh, m.provoked_beh, m.is_boss "
         sql += "FROM monster m, "
@@ -544,7 +551,8 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
         sql += "LIMIT 1" 
 
         crsr.execute(sql) #execute the query
-        row = crsr.fetchone()
+        row = crsr.fetchone() #only one row returned in query, so only need to fetch one tuple
+        #add all attributes from query to query list
         row_string = ''
         for att in row:
             row_string += str(att) + ';'
@@ -552,7 +560,6 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
 
     #write to file
     file = open("data\\runtime_data.txt", "a")
-
     for line in query:
         file.write(line + "\n")
 
@@ -562,17 +569,21 @@ def get_list_monsters(save_id, num_monsters, max_mons_types, boss_fight):
     return query
 
 #called with argv[1] = 6, argv[2] = <save_id>, and argv[3] = <just_loaded>
+#generate a new map based on location of save with save_id
+#   if just_loaded, the map generated will be the map with id = on_map value of the save with save_id
 def select_map(save_id, just_loaded):
     query = []
     #connect to mysql dbms
     db = getConnection()
-    crsr = db.cursor()
+    crsr = db.cursor() #create cursor for querying database
+    #query to get stats on all possible maps that the user can be if the user did not just load a save
     if not just_loaded:
         sql = "SELECT m.id, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme, m.num_monsters "
         sql += "FROM map m, save s "
         sql += "WHERE m.start_floor <= s.level and m.end_floor >= s.level and s.id = " + str(save_id) + " "
         sql += "ORDER BY Rand() "
         sql += "LIMIT 1"
+    #query to get stats on the map that the user left off on if the user just loaded a save
     else:
         sql = "SELECT m.id, m.max_mons_types, m.boss_fight, reward_type, m.length, m.width, room_theme, m.num_monsters "
         sql += "FROM map m, save s "
@@ -580,16 +591,19 @@ def select_map(save_id, just_loaded):
 
     crsr.execute(sql) #execute the query
 
-    row = crsr.fetchone()
+    row = crsr.fetchone() #only one row returned in query so only need to fetch one tuple
+    #store attributes returned for later use
     id = row[0]
     num_mons = row[7]
     mons_plus_boss = num_mons
     max_mons_types = row[1]
     boss_fight = row[2]
 
+    #if this map contains a boss fight, there is actually one more monster than what has been stored
     if(boss_fight):
         mons_plus_boss += 1
 
+    #append results of query to quey list
     row_string = ''
     for att in range(7):
         if att > 2:
@@ -597,7 +611,7 @@ def select_map(save_id, just_loaded):
     row_string += str(mons_plus_boss) + ';'
     query.append(row_string)
 
-
+    #query to update the value of on_map for the active save to match the id of the newly generated map
     sql = "UPDATE save "
     sql += "SET on_map = " + str(id) + " "
     sql += "WHERE id = " + str(save_id)
@@ -607,7 +621,6 @@ def select_map(save_id, just_loaded):
 
     #write to file
     file = open("data\\runtime_data.txt", "w")
-
     for line in query:
         file.write(line + "\n")
 
@@ -615,12 +628,14 @@ def select_map(save_id, just_loaded):
     file.close()
     crsr.close()
 
-    get_list_monsters(save_id, num_mons, max_mons_types, boss_fight)
+    get_list_monsters(save_id, num_mons, max_mons_types, boss_fight) #retrieve the list of monsters that will appear on this map
 
 #update save query///////////////////////////////////////////////////////////////////////////
 #called with argv[1] = 8, argv[2] = <save_id>, and argv[3] = update 
+#update the stats of the current save according to the value of update string
 #update is string like so: "<max_hp>,<cur_hp>,<str>,<spd>"
 def update_save(save_id, update):
+    #parse update to get values of all stats to be updated
     update_stat_list = update.split(',')
     max_hp = update_stat_list[0]
     cur_hp = update_stat_list[1]
@@ -630,39 +645,43 @@ def update_save(save_id, update):
     query = []
     #connect to mysql dbms
     db = getConnection()
-    crsr = db.cursor()
+    crsr = db.cursor() #create cursor to query database
 
+    #query to get the level of the active save
     sql = "SELECT level "
     sql += "FROM save "
     sql += "WHERE id = " + str(save_id)
 
     crsr.execute(sql) #execute query
 
-    row = crsr.fetchone()
+    row = crsr.fetchone() #only one row returned in query so only need to fetch one tuple
 
-    level = int(row[0]) + 1
+    level = int(row[0]) + 1 #increase the current level by one
 
+    #query to update stats of save based on values retrieved from update string
     sql = "UPDATE save SET max_hp = " + str(max_hp) + ", cur_hp = " + str(cur_hp) + ", str = " + str(strength)
     sql += ", spd = " + str(spd) + ", level = " + str(level) + " WHERE id = " + str(save_id)
 
-    crsr.execute(sql)
+    crsr.execute(sql) #execute the query
     db.commit() #confirm table manipulation
 
     crsr.close() #clean up
 
 #use consumables query///////////////////////////////////////////////////////////////////////
+#returns the id of a row in inventory with save = save_id and item = consumable_id
 def get_inventory_id(save_id, consumable_id):
     #connect to mysql dbms
     db = getConnection()
-    crsr = db.cursor()
+    crsr = db.cursor() #create cursor for querying the database
+    #query to get the id of the inventory slot that contains both save_id and consumable_id
     sql = "SELECT id "
     sql += "FROM inventory "
     sql += "WHERE save = " + str(save_id) + " AND item = " + str(consumable_id) + " "
     sql += "LIMIT 1"
 
     crsr.execute(sql) #execute the query
-    id = -1
-    row = crsr.fetchone()
+    id = -1 #set default value of id if no id is returned in query
+    row = crsr.fetchone() #only one row returned in query so only need to fetch one tuple
     if row is not None:
         id = row[0]
     
@@ -670,18 +689,22 @@ def get_inventory_id(save_id, consumable_id):
     return id
 
 #called with argv[1] = 10, argv[2] = <save_id>, and argv[3] = <consumable_id>
+#remove a row of inventory with save = save_id and item = consumable_id
 def use_consumable(save_id, consumable_id):
-    id = get_inventory_id(save_id, consumable_id)
+    id = get_inventory_id(save_id, consumable_id) #get the id of the inventory slot that contains save_id and consumable_id
+    #if an inventory slot that contains save_id and consumable_id is found
     if id != -1:
         #connect to mysql dbms
         db = getConnection()
-        crsr = db.cursor()
+        crsr = db.cursor() #create cursor for querying the database
+        #remove the row of the inventory table that contains save_id and consumable_id
         sql = "DELETE FROM inventory WHERE (id = " + str(id) + ")"
         crsr.execute(sql) #execute the query
         db.commit() #confirm table manipulation
 
         crsr.close() #clean up
 
+#execute query based on inputs sent through python call
 def choose_query():
     if int(sys.argv[1]) == 1:
         get_save_files()
@@ -709,4 +732,3 @@ def choose_query():
 
 if __name__ == '__main__':
     choose_query()
-    # select_map(15, False)
