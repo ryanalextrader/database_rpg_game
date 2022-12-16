@@ -12,6 +12,7 @@ Cursor::Cursor(){
 
 void Cursor::moveCursor(int row, int col, const int max_row, const int max_col){
     if(isValid(row, col, max_row, max_col)){
+        //if this position is valid, move cursor to this position
         row_coord = row;
         col_coord = col;
     }

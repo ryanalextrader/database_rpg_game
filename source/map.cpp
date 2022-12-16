@@ -240,11 +240,13 @@ void Map::mainMenu() {
         loaded_file = saveList();
     }
 
-    system(("python db_interface\\db_interface.py 5 " + to_string(save_id)).c_str()); //retrieve the save file to be used
-    createPlayer();
+    if(!game_over){
+        system(("python db_interface\\db_interface.py 5 " + to_string(save_id)).c_str()); //retrieve the save file to be used
+        createPlayer();
 
-    system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 1").c_str()); //retrieve the map data from the save
-    createNewMap();
+        system(("python db_interface\\db_interface.py 6 " + to_string(save_id) + " 1").c_str()); //retrieve the map data from the save
+        createNewMap();
+    }
 }
 
 void Map::unlockList() {
@@ -338,6 +340,13 @@ bool Map::saveList() {
         //select existing save
         save_id = id_list[index];
         level = level_list[index];
+        if(level == 21){
+            //game is won if level == 21
+            activity = "YOU MADE IT TO THE END! BUT THERE IS NO ESCAPE....";
+            printGrid();
+            game_over = true;
+            system(("python db_interface\\db_interface.py 4 " + to_string(save_id)).c_str()); //delete save file
+        }
         return true;
     } else {
         //create new game
